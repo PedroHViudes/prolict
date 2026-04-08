@@ -1,0 +1,88 @@
+.pagina-recuperacao {
+    background-color: var(--prolicit-verde);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.cartao-recuperacao {
+    border: none !important;
+    border-radius: 30px !important;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.coluna-imagem-recuperacao {
+    padding: 0 !important;
+}
+
+.imagem {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.logo {
+    max-width: 200px;
+}
+
+.titulo {
+    color: var(--prolicit-preto);
+    font-weight: 700;
+}
+
+.texto-apoio {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* A moldura cinza do design */
+.caixa-campos {
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    padding: 25px;
+    background-color: white;
+}
+
+.grupo-recuperacao .input-group-text {
+    background-color: white !important;
+    border: 1px solid #ced4da !important;
+    border-right: none !important;
+    color: var(--prolicit-azul);
+}
+
+.grupo-recuperacao .form-control {
+    border: 1px solid #ced4da !important;
+    border-left: none !important;
+}
+
+.btn-enviar {
+    background-color: var(--prolicit-verde) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 10px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+}
+
+.link-login {
+    color: var(--prolicit-azul);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.link-login:hover {
+    text-decoration: underline;
+}
+
+.rodape {
+    font-size: 0.75rem;
+    color: var(--prolicit-azul);
+    font-weight: 500;
+    line-height: 1.4;
+    
+}

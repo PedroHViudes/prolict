@@ -1,0 +1,119 @@
+/* Container que centraliza tudo na tela */
+.pagina-login {
+    background-color: var(--prolicit-verde);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* O cartão principal branco */
+.cartao-login {
+    border: none !important;
+    border-radius: 30px !important;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Coluna da esquerda com a imagem */
+.coluna-imagem {
+    padding: 0 !important;
+}
+
+.imagem-principal {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Coluna da direita com o formulário */
+.coluna-formulario {
+    background-color: #f8f9fa; /* Um branco levemente acinzentado */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo-marca {
+    max-width: 180px;
+    margin-bottom: 15px;
+}
+
+.titulo-principal {
+    color: var(--prolicit-preto);
+    font-weight: 700;
+}
+
+.titulo-principal span {
+    color: var(--prolicit-verde);
+}
+
+.texto-apoio {
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.4;
+    margin-bottom: 25px;
+}
+
+/* A caixa que envolve os campos de input (borda cinza na imagem) */
+.container-campos {
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 25px;
+    background-color: transparent;
+}
+
+/* Estilo dos grupos de input */
+.grupo-entrada {
+    margin-bottom: 15px;
+}
+
+.grupo-entrada .input-group-text {
+    background-color: white !important;
+    border: 1px solid #ccc !important;
+    border-right: none !important;
+    color: var(--prolicit-azul);
+    border-radius: 10px 0 0 10px !important;
+}
+
+.grupo-entrada .form-control {
+    border: 1px solid #ccc !important;
+    border-left: none !important;
+    border-radius: 0 10px 10px 0 !important;
+    font-size: 0.9rem;
+}
+
+/* Links e Botão */
+.link-esqueci {
+    display: block;
+    text-align: right;
+    font-size: 0.75rem;
+    color: #888;
+    text-decoration: none;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.btn-entrar {
+    background-color: var(--prolicit-verde) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 10px 35px !important;
+    font-weight: 700 !important;
+    color: white !important;
+}
+
+.link-cadastro {
+    color: var(--prolicit-azul);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.rodape-suporte {
+    font-size: 0.75rem;
+    color: var(--prolicit-azul);
+    font-weight: 500;
+}

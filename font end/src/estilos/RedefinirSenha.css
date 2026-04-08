@@ -1,0 +1,76 @@
+/* Fundo e Container */
+.pagina-fundo {
+    background-color: var(--prolicit-verde);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.cartao-principal {
+    border: none !important;
+    border-radius: 40px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.moldura-interna {
+    border: 1px solid #e0e0e0;
+    border-radius: 25px;
+}
+
+/* Estilo das Imagens do Logo */
+.img-doc {
+    width: 130px; /* Tamanho do ícone do papel */
+    height: auto;
+}
+
+.img-texto {
+    width: 180px; /* Tamanho do texto ProLicit */
+    height: auto;
+     
+}
+
+/* Divisória e Alinhamento */
+@media (min-width: 768px) {
+    .divisoria-lateral {
+        border-right: 1px solid #eeeeee;
+    }
+}
+
+/* Campos e Textos */
+.label-campo {
+    font-weight: 700;
+    color: var(--prolicit-azul);
+    margin-bottom: 8px;
+}
+
+.grupo-input .input-group-text {
+    background-color: white !important;
+    border: 1px solid #ced4da !important;
+    border-right: none !important;
+    color: var(--prolicit-azul);
+}
+
+.grupo-input .form-control {
+    border: 1px solid #ced4da !important;
+    border-left: none !important;
+}
+
+.texto-suporte {
+    font-size: 0.75rem;
+    color: var(--prolicit-azul);
+    max-width: 250px;
+}
+
+/* Botão de Ação */
+.btn-acao {
+    background-color: var(--prolicit-verde) !important;
+    border: none !important;
+    border-radius: 25px !important;
+   
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    color: white !important;
+    margin-bottom: 10px;
+}
