@@ -1,0 +1,15 @@
+/* layout.css */
+.menu-lateral {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--prolicit-cinza-claro);
+}
+
+.conteudo-principal {
+  height: 100vh;
+  overflow-y: auto;
+  margin-left: 250px; /* Deve ser a mesma largura da sua .area-sidebar */
+  width: calc(100% - 250px);
+  padding: 2rem; /* Opcional: ajuste seu padding aqui */
+}

@@ -8,7 +8,8 @@
   --prolicit-preto: #1a1a1a;   /* Preto suave */
   --prolicit-branco: #ffffff;  /* Branco puro */
   --prolicit-laranja: #ff6600; /* Laranja de destaque (detalhe na imagem) */
-  --prolicit-verde: #33CC99;   /* Verde principal */
+  --prolicit-verde: #33CC99; 
+  --prolicit-cinza-claro: #f8f9fa;  /* Cinza claro */
 }
 
 /* Aplicando a fonte e cores globalmente */
@@ -21,9 +22,15 @@ body {
 }
 
 /* Utilitários personalizados para facilitar o uso no projeto */
-.text-prolicit-azul { color: var(----prolicit-azul); }
+.text-prolicit-azul { color: var(--prolicit-azul); }
 .bg-prolicit-verde { background-color: var(--prolicit-verde) !important; }
 .bg-prolicit-laranja { background-color: var(--prolicit-laranja) !important; }
+.bg-prolicit-cinza-claro { background-color: var(--prolicit-cinza-claro) !important; }
+
+/* Background padrão do sistema */
+body {
+  background-color: #f8f9fa;
+}
 
 /* Ajuste global para inputs e botões seguirem a Poppins */
 input, button, select, textarea {
