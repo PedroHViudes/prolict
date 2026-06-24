@@ -1,119 +1,222 @@
-/* Container que centraliza tudo na tela */
+/* ==========================================================================
+   ESTILOS DA TELA DE LOGIN - PROLICIT (PREMIUM E COMENTADO)
+   ========================================================================== */
+
+/* Container principal que envolve e centraliza toda a tela de login */
 .pagina-login {
-    background-color: var(--prolicit-verde);
-    min-height: 100vh;
+    /* Fundo degradê sofisticado misturando o azul escuro com o verde/teal da marca */
+    background: linear-gradient(135deg, var(--prolicit-azul) 0%, #174b7c 50%, var(--prolicit-verde) 100%);
+    min-height: 100vh; /* Ocupa no mínimo 100% da altura da tela */
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; /* Centralização vertical */
+    justify-content: center; /* Centralização horizontal */
     padding: 20px;
-}
-
-/* O cartão principal branco */
-.cartao-login {
-    border: none !important;
-    border-radius: 30px !important;
+    position: relative;
     overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-/* Coluna da esquerda com a imagem */
+/* Efeito decorativo sutil: adiciona um círculo suave no fundo para dar "molho" visual */
+.pagina-login::before {
+    content: "";
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(51, 204, 153, 0.2) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+    z-index: 0;
+}
+
+/* O cartão (card) principal que contém o formulário e a imagem lateral */
+.cartao-login {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Borda bem fina e translúcida (estilo vidro) */
+    border-radius: 24px !important; /* Bordas arredondadas e modernas */
+    overflow: hidden; /* Garante que os filhos não passem das bordas arredondadas */
+    /* Sombra suave e profunda que dá sensação de flutuação e realismo */
+    box-shadow: 0 20px 50px rgba(0, 30, 60, 0.3) !important;
+    background-color: #ffffff !important;
+    position: relative;
+    z-index: 1; /* Fica acima dos efeitos decorativos do fundo */
+    transition: transform 0.4s ease;
+}
+
+/* Coluna da esquerda que hospeda a imagem principal */
 .coluna-imagem {
     padding: 0 !important;
+    position: relative;
 }
 
+/* A imagem lateral de boas-vindas */
 .imagem-principal {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Faz a imagem cobrir todo o espaço disponível de forma proporcional */
     display: block;
+    filter: brightness(0.95); /* Deixa a imagem levemente mais escura para harmonizar com o layout */
 }
 
-/* Coluna da direita com o formulário */
+/* Coluna da direita que hospeda o formulário de login */
 .coluna-formulario {
-    background-color: #f8f9fa; /* Um branco levemente acinzentado */
+    background-color: #ffffff; /* Fundo branco limpo */
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
+/* Imagem da logo da marca no topo */
 .logo-marca {
-    max-width: 180px;
-    margin-bottom: 15px;
+    max-width: 160px;
+    margin-bottom: 12px;
+    transition: transform 0.3s ease;
 }
 
+.logo-marca:hover {
+    transform: scale(1.05); /* Efeito sutil ao passar o mouse na logo */
+}
+
+/* Título principal de boas-vindas */
 .titulo-principal {
-    color: var(--prolicit-preto);
+    color: var(--prolicit-azul);
+    font-size: 1.6rem;
     font-weight: 700;
+    margin-bottom: 8px;
 }
 
+/* Cor especial do nome "ProLicit!" no título */
 .titulo-principal span {
     color: var(--prolicit-verde);
+    position: relative;
 }
 
+/* Pequeno texto de apoio explicativo abaixo do título */
 .texto-apoio {
-    font-size: 0.85rem;
-    color: #555;
-    line-height: 1.4;
-    margin-bottom: 25px;
+    font-size: 0.8rem;
+    color: #666e75; /* Cinza médio confortável para leitura */
+    line-height: 1.5;
+    margin-bottom: 24px;
+    padding: 0 10px;
 }
 
-/* A caixa que envolve os campos de input (borda cinza na imagem) */
+/* Caixa com bordas que envolve os inputs (traz mais organização visual) */
 .container-campos {
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    padding: 25px;
-    background-color: transparent;
+    border: 1px solid rgba(0, 51, 102, 0.08) !important;
+    border-radius: 18px;
+    padding: 24px;
+    /* Fundo levemente cinza translúcido para destacar do restante do card */
+    background-color: rgba(248, 249, 250, 0.6);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02); /* Sombra interna para profundidade */
 }
 
-/* Estilo dos grupos de input */
+/* Margem dos grupos de campos de entrada de dados */
 .grupo-entrada {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
 }
 
+/* A caixinha de ícone que fica grudada na esquerda do input */
 .grupo-entrada .input-group-text {
-    background-color: white !important;
-    border: 1px solid #ccc !important;
-    border-right: none !important;
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    border-right: none !important; /* Remove a borda direita para colar perfeitamente no input */
     color: var(--prolicit-azul);
-    border-radius: 10px 0 0 10px !important;
+    font-size: 1.1rem;
+    border-radius: 12px 0 0 12px !important; /* Arredonda apenas os cantos esquerdos */
+    padding-left: 15px;
+    padding-right: 5px;
+    transition: border-color 0.25s ease, color 0.25s ease;
 }
 
+/* O campo de texto digitável (input) de e-mail/senha */
 .grupo-entrada .form-control {
-    border: 1px solid #ccc !important;
-    border-left: none !important;
-    border-radius: 0 10px 10px 0 !important;
-    font-size: 0.9rem;
+    border: 1px solid #d1d5db !important;
+    border-left: none !important; /* Remove a borda esquerda para colar no ícone */
+    border-radius: 0 12px 12px 0 !important; /* Arredonda apenas os cantos direitos */
+    font-size: 0.85rem;
+    padding: 12px 15px;
+    color: #333333;
+    font-weight: 500;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
 }
 
-/* Links e Botão */
+/* Efeito dinâmico: Quando o usuário clica para digitar no input */
+.grupo-entrada:focus-within .input-group-text {
+    border-color: var(--prolicit-verde) !important;
+    color: var(--prolicit-verde); /* Ícone acende em verde */
+}
+
+.grupo-entrada .form-control:focus {
+    border-color: var(--prolicit-verde) !important;
+    box-shadow: 0 0 0 4px rgba(51, 204, 153, 0.15) !important; /* Brilho verde suave de foco */
+    background-color: #ffffff !important;
+    outline: none !important;
+}
+
+/* Link para recuperação de senha */
 .link-esqueci {
     display: block;
     text-align: right;
     font-size: 0.75rem;
-    color: #888;
+    color: #718096;
     text-decoration: none;
-    margin-top: -10px;
-    margin-bottom: 20px;
+    margin-top: -6px;
+    margin-bottom: 24px;
+    font-weight: 500;
+    transition: color 0.2s ease;
 }
 
+.link-esqueci:hover {
+    color: var(--prolicit-laranja); /* Acende em laranja ao passar o mouse */
+    text-decoration: underline;
+}
+
+/* Botão principal de ação "Entrar" */
 .btn-entrar {
     background-color: var(--prolicit-verde) !important;
     border: none !important;
-    border-radius: 25px !important;
-    padding: 10px 35px !important;
+    border-radius: 12px !important; /* Combinando com os inputs */
+    padding: 10px 28px !important;
+    font-size: 0.9rem;
     font-weight: 700 !important;
-    color: white !important;
+    color: #ffffff !important;
+    /* Sombra suave abaixo do botão nas cores do verde */
+    box-shadow: 0 4px 12px rgba(51, 204, 153, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important; /* Transição elástica premium */
 }
 
+/* Animações e efeitos dinâmicos ao interagir com o botão Entrar */
+.btn-entrar:hover {
+    background-color: #2bbd8c !important; /* Tom de verde levemente mais escuro */
+    transform: translateY(-2px); /* Botão sobe de leve */
+    box-shadow: 0 6px 16px rgba(51, 204, 153, 0.45) !important; /* Sombra aumenta de tamanho */
+}
+
+.btn-entrar:active {
+    transform: translateY(1px); /* Ao clicar, o botão desce simulando clique mecânico */
+    box-shadow: 0 2px 6px rgba(51, 204, 153, 0.2) !important;
+}
+
+/* Link na parte inferior para se cadastrar */
 .link-cadastro {
     color: var(--prolicit-azul);
     text-decoration: none;
     font-size: 0.85rem;
     font-weight: 600;
+    position: relative;
+    transition: color 0.2s ease;
 }
 
+.link-cadastro:hover {
+    color: var(--prolicit-verde);
+}
+
+/* Pequeno rodapé com informação de ajuda e suporte */
 .rodape-suporte {
-    font-size: 0.75rem;
-    color: var(--prolicit-azul);
+    font-size: 0.7rem;
+    color: #718096;
+    margin-top: 24px;
     font-weight: 500;
+    line-height: 1.4;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 15px;
 }
