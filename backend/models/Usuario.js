@@ -1,23 +1,19 @@
-const db = require  ('../db');
-
-const Usuario ={
-   
-    buscarPorEmail: async (email) => {
-        
-        const [linhas] = await db.query('SELECT * FROM administrador WHERE email = ?', [email]);
-        return linhas[0]; 
+const Usuario = {
+    buscarPorEmail: async (db, email) => {
+        return await db
+            .prepare('SELECT * FROM administrador WHERE email = ?')
+            .bind(email)
+            .first();
     },
 
-    criar: async (dados) => {
+    criar: async (db, dados) => {
         const { nome, email, senha, cargo } = dados;
         const sql = "INSERT INTO administrador (nome, email, senha, cargo) VALUES (?, ?, ?, ?)";
-        const valores = [nome, email, senha, cargo];
-        
-        
-        return await db.query(sql, valores);
-
-
+        return await db
+            .prepare(sql)
+            .bind(nome, email, senha, cargo)
+            .run();
     }
-  
 };
-  module.exports = Usuario;
+
+export default Usuario;

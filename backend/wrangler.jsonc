@@ -1,0 +1,22 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "prolict-backend",
+	"main": "index.js",
+	"compatibility_date": "2024-06-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "prolict-db",
+			"database_id": "b86b2047-fbeb-4548-b5f9-541d2e7d2daf"
+		},
+		{
+			"binding": "prolict_db",
+			"database_name": "prolict-db",
+			"database_id": "b86b2047-fbeb-4548-b5f9-541d2e7d2daf"
+		}
+	]
+}
+

@@ -29,12 +29,12 @@ export default function Cadastro() {
 
         try {
           
-            const response = await axios.post("http://localhost:3001/cadastro", {
+            const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8787";
+            const response = await axios.post(`${API_URL}/cadastro`, {
                 nome: nome,
                 empresa: empresa,
                 email: email,
                 senha: senha,
-                
             });
 
             alert(response.data.mensagem);

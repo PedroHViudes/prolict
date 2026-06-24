@@ -1,45 +1,54 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcrypt');
-const Usuario = require('./models/Usuario');
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import bcrypt from 'bcryptjs';
+import Usuario from './models/Usuario.js';
 
-const app = express();
+const app = new Hono();
 
-app.use(cors());
-app.use(express.json());
+// Habilita o CORS para todas as rotas
+app.use('*', cors());
 
-app.post('/cadastro', async (req, res) => {
-    console.log("Dados recebidos:", req.body);
-    const { nome, empresa, email, senha } = req.body;
+// Rota inicial para verificar o status do backend
+app.get('/', (c) => c.text('Backend do ProLicit rodando com sucesso!'));
 
-    if (!nome || !email || !senha) {
-        return res.status(400).json({ mensagem: "Dados obrigatórios faltando." });
-    }
-
+// Rota de Cadastro de Usuário
+app.post('/cadastro', async (c) => {
+    console.log("Recebida requisição de cadastro");
+    
     try {
-        const usuarioexistente = await Usuario.buscarPorEmail(email);
+        const body = await c.req.json();
+        console.log("Dados recebidos:", body);
+        const { nome, empresa, email, senha } = body;
+
+        if (!nome || !email || !senha) {
+            return c.json({ mensagem: "Dados obrigatórios faltando." }, 400);
+        }
+
+        // Buscamos o usuário no banco de dados D1 (passando c.env.DB)
+        const usuarioexistente = await Usuario.buscarPorEmail(c.env.DB, email);
 
         if (usuarioexistente) {
-            return res.status(400).json({ mensagem: "Esse email já está sendo usado." })
+            return c.json({ mensagem: "Esse email já está sendo usado." }, 400);
         }
 
         const saltos = 10;
         const senhaCriptografada = await bcrypt.hash(senha, saltos);
 
-        await Usuario.criar({
+        // Criamos o usuário no banco de dados D1
+        await Usuario.criar(c.env.DB, {
             nome,
             email,
             senha: senhaCriptografada,
             cargo: empresa, // Mapeando empresa da tela para cargo do banco
-            
         });
 
-        res.status(201).json({ mensagem: "Usuário cadastrado com sucesso!" });
+        return c.json({ mensagem: "Usuário cadastrado com sucesso!" }, 201);
     }
     catch (erro) {
-        console.error(erro);
-        res.status(500).json({ mensagem: "Erro ao processar cadastro." });
+        console.error("Erro no cadastro:", erro);
+        return c.json({ mensagem: "Erro ao processar cadastro." }, 500);
     }
-
 });
-app.listen(3001, () => console.log("Backend organizado rodando na porta 3001"));
+
+// Exporta o app para o Cloudflare Worker
+export default app;

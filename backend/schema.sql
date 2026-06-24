@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS administrador (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    senha TEXT NOT NULL,
+    cargo TEXT
+);
