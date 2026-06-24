@@ -1,101 +1,66 @@
 /* ==========================================================================
-   ESTILOS DA TELA DE CADASTRO - PROLICIT (PREMIUM E COMENTADO)
+   ESTILOS DA TELA DE CADASTRO - PROLICIT (VERDE PADRÃO E PREMIUM)
    ========================================================================== */
 
 /* Container principal que envolve e centraliza toda a tela de cadastro */
 .cadastro-container {
-    /* Fundo degradê sofisticado seguindo a mesma identidade visual do Login */
-    background: linear-gradient(135deg, var(--prolicit-azul) 0%, #174b7c 50%, var(--prolicit-verde) 100%);
+    /* Retornado para o fundo verde sólido padrão conforme solicitado */
+    background-color: var(--prolicit-verde);
     min-height: 100vh; /* Ocupa toda a altura da tela */
     display: flex;
     align-items: center; /* Centralização vertical */
     justify-content: center; /* Centralização horizontal */
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Efeito decorativo sutil: círculo desfocado no rodapé esquerdo do fundo */
-.cadastro-container::before {
-    content: "";
-    position: absolute;
-    width: 450px;
-    height: 450px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(51, 204, 153, 0.15) 0%, transparent 70%);
-    bottom: -150px;
-    left: -150px;
-    z-index: 0;
+    padding: 10px;
 }
 
 /* O cartão (card) principal que contém o formulário de cadastro */
 .cadastro-card {
-    border: 1px solid rgba(255, 255, 255, 0.1) !important; /* Borda translúcida de acabamento refinado */
-    border-radius: 24px !important; /* Bordas curvas elegantes */
+    border: none !important; /* Retornado para sem borda padrão */
+    border-radius: 30px !important; /* Retornado para o raio original de 30px */
     overflow: hidden; /* Mantém os cantos da imagem interna alinhados ao arredondamento */
-    /* Sombra pesada e suave para destacar o elemento tridimensionalmente */
-    box-shadow: 0 20px 50px rgba(0, 30, 60, 0.35) !important;
-    background-color: #ffffff !important;
-    position: relative;
-    z-index: 1; /* Posicionado acima do círculo decorativo do fundo */
+    /* Retornado para a sombra e cor de fundo originais */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    background-color: white;
 }
 
-/* Container da coluna que abriga a imagem lateral */
-.cadastro-image {
-    padding: 0 !important;
-    height: 100%;
-}
-
-/* A imagem lateral correspondente à tela de cadastro */
+/* A imagem lateral de cadastro - Retornado ao padrão original de dimensionamento */
 .cadastro-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ajuste inteligente sem distorcer o arquivo de imagem */
+    object-fit: cover; /* Ajuste proporcional original */
     display: block;
-    filter: brightness(0.95); /* Pequeno ajuste de brilho para uniformidade */
 }
 
-/* Grupo personalizado dos campos de input (organização e espaçamento) */
-.prolicit-input-group {
-    margin-bottom: 15px;
-    transition: all 0.3s ease;
-}
-
-/* A caixa do ícone à esquerda do input no cadastro */
+/* A caixinha do ícone à esquerda do input no cadastro */
 .prolicit-input-group .input-group-text {
-    background-color: #ffffff !important;
-    border: 1px solid #d1d5db !important;
+    background-color: #f8f9fa !important; /* Cinza original */
+    border: 1px solid #ced4da !important;
     border-right: none !important; /* Retira a borda para emendar com o input */
-    color: #666e75;
-    border-radius: 12px 0 0 12px !important; /* Cantos arredondados apenas do lado esquerdo */
-    font-size: 1.1rem;
-    padding-left: 15px;
-    padding-right: 5px;
-    transition: border-color 0.25s ease, color 0.25s ease;
+    color: #6c757d;
+    border-radius: 10px 0 0 10px !important; /* Cantos arredondados esquerdos originais (10px) */
+    transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 /* O campo de input digitável no cadastro */
 .prolicit-input-group .form-control {
-    background-color: #ffffff !important;
-    border: 1px solid #d1d5db !important;
+    background-color: #f8f9fa !important; /* Cinza original */
+    border: 1px solid #ced4da !important;
     border-left: none !important; /* Retira a borda para colar no ícone */
-    border-radius: 0 12px 12px 0 !important; /* Cantos arredondados do lado direito */
-    font-size: 0.85rem;
-    padding: 12px 15px;
-    color: #333333;
-    font-weight: 500;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    border-radius: 0 10px 10px 0 !important; /* Cantos arredondados direitos originais (10px) */
+    font-size: 0.9rem;
+    padding: 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Efeito dinâmico: Ao focar em qualquer campo dentro do grupo de inputs */
+/* Efeito dinâmico premium: Glow suave verde ao focar nos inputs */
 .prolicit-input-group:focus-within .input-group-text {
     border-color: var(--prolicit-verde) !important;
-    color: var(--prolicit-verde); /* O ícone do campo acende em verde */
+    color: var(--prolicit-verde);
 }
 
 .prolicit-input-group .form-control:focus {
     border-color: var(--prolicit-verde) !important;
-    box-shadow: 0 0 0 4px rgba(51, 204, 153, 0.15) !important; /* Efeito de brilho de foco suave */
+    box-shadow: 0 0 0 3px rgba(51, 204, 153, 0.2) !important;
     outline: none !important;
 }
 
@@ -103,8 +68,6 @@
 .cadastro-title {
     color: var(--prolicit-azul);
     font-weight: 700;
-    font-size: 1.6rem;
-    margin-bottom: 5px;
 }
 
 /* Estilo de cor verde/teal do ProLicit */
@@ -112,41 +75,35 @@
     color: var(--prolicit-verde) !important;
 }
 
-/* Link para o usuário retornar para a tela de login se já possuir cadastro */
+/* Link para retornar para a tela de login */
 .link-login {
-    color: #718096;
+    color: #6c757d;
     text-decoration: none;
     font-size: 0.85rem;
-    font-weight: 500;
-    transition: color 0.2s ease, text-decoration 0.2s ease;
+    transition: color 0.2s ease;
 }
 
 .link-login:hover {
-    color: var(--prolicit-azul); /* Altera para azul ao passar o mouse */
-    text-decoration: underline;
+    color: var(--prolicit-azul);
 }
 
 /* Botão principal de ação "Cadastrar" */
 .btn-cadastrar {
     background-color: var(--prolicit-verde) !important;
     border: none !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    padding: 10px 32px !important;
-    color: #ffffff !important;
-    /* Sombra suave do botão para dar destaque */
-    box-shadow: 0 4px 12px rgba(51, 204, 153, 0.3) !important;
-    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important; /* Efeito elástico premium */
+    font-weight: 600 !important;
+    padding: 10px 40px !important;
+    color: #f8f9fa;
+    transition: all 0.3s ease !important;
 }
 
-/* Animações e micro-interações do botão ao passar o mouse e clicar */
+/* Efeitos de interação suave no botão de cadastro */
 .btn-cadastrar:hover {
-    background-color: #2bbd8c !important; /* Verde ligeiramente mais escuro */
-    transform: translateY(-2px); /* Botão levanta levemente */
-    box-shadow: 0 6px 16px rgba(51, 204, 153, 0.45) !important; /* Sombra se expande */
+    background-color: #2bbd8c !important;
+    transform: scale(1.05); /* Leve aumento no hover */
+    box-shadow: 0 4px 12px rgba(51, 204, 153, 0.3) !important;
 }
 
 .btn-cadastrar:active {
-    transform: translateY(1px); /* Botão afunda levemente */
-    box-shadow: 0 2px 6px rgba(51, 204, 153, 0.2) !important;
+    transform: scale(0.98);
 }
