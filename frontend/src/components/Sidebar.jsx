@@ -9,7 +9,7 @@ import {
   FaChartBar, 
   FaUser, 
   FaCog,
-  FaSignOutAlt // Adicionado este ícone
+  FaSignOutAlt 
 } from 'react-icons/fa';
 
 export default function Sidebar() {
@@ -17,7 +17,7 @@ export default function Sidebar() {
 
   // Função necessária para o botão funcionar
   const handleLogout = () => {
-    // Adicione aqui a lógica de limpeza (ex: localStorage.clear())
+  
     console.log("Deslogado com sucesso");
     navigate('/'); // Redireciona para a tela de login
   };
