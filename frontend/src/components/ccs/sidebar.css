@@ -23,9 +23,12 @@
 }
 
 .texto-sidebar{
-    font-size: 0.85rem;
+    font-size: var(--tamanho-fonte);
     font-weight: bold;
 }
+
+
+
 
 .btn-sair {
     background-color: var(--prolicit-azul) !important;

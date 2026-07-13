@@ -58,7 +58,7 @@
 }
 
 .texto-suporte {
-    font-size: 0.75rem;
+    font-size: var(--tamanho-fonte);
     color: var(--prolicit-azul);
     max-width: 250px;
 }
@@ -70,7 +70,7 @@
     border-radius: 25px !important;
    
     font-weight: 600 !important;
-    font-size: 0.85rem !important;
+    font-size: var(--tamanho-fonte) !important;
     color: white !important;
     margin-bottom: 10px;
 }

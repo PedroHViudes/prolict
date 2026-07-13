@@ -1,147 +1,256 @@
-import React from 'react';
-import { FaSearch, FaArrowUp, FaInfoCircle, FaEllipsisV } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaArrowUp, FaInfoCircle, FaMoneyBillWave, FaCheckCircle, FaClock } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';
+import api from '../services/api';
 
 /**
  * Página de Dashboard.
- * Exibe um resumo geral das licitações e uma tabela com as mais recentes.
+ * Exibe resumo rápido: cards com totais, últimas licitações com progresso,
+ * e últimos serviços registrados.
  */
 export default function Dashboard() {
+  const [licitacoes, setLicitacoes] = useState([]);
+  const [servicos, setServicos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [usuario, setUsuario] = useState({ nome: 'Usuário' });
+  const [resumo, setResumo] = useState({
+    totalLicitacoes: 0,
+    licitacoesAtivas: 0,
+    valorTotal: 0,
+    valorServicos: 0,
+    saldoTotal: 0
+  });
+
+  useEffect(() => {
+    const dadosUsuario = localStorage.getItem('usuario');
+    if (dadosUsuario) {
+      setUsuario(JSON.parse(dadosUsuario));
+    }
+
+    async function buscarDados() {
+      try {
+        const [respLicitacoes, respResumo, respServicos] = await Promise.all([
+          api.get('/licitacoes/ativas'),
+          api.get('/licitacoes/relatorio/resumo'),
+          api.get('/servicos')
+        ]);
+
+        setLicitacoes(respLicitacoes.data);
+        setServicos(respServicos.data);
+
+        const dados = respResumo.data;
+        let totalLicitacoes = dados.length;
+        let licitacoesAtivas = 0;
+        let valorTotal = 0;
+        let valorExecutado = 0;
+        let saldoTotal = 0;
+
+        dados.forEach(lic => {
+          valorTotal += parseFloat(lic.valor_estimado || 0);
+          valorExecutado += parseFloat(lic.valor_executado || 0);
+          saldoTotal += parseFloat(lic.saldo || 0);
+          if (lic.status === 'Ativa') licitacoesAtivas++;
+        });
+
+        setResumo({
+          totalLicitacoes,
+          licitacoesAtivas,
+          valorTotal,
+          valorServicos: valorExecutado,
+          saldoTotal
+        });
+
+      } catch (erro) {
+        console.error("Erro ao carregar dashboard:", erro);
+      } finally {
+        setCarregando(false);
+      }
+    }
+    buscarDados();
+  }, []);
+
+  function formatarMoeda(valor) {
+    return `R$ ${parseFloat(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  }
+
   return (
     <Layout>
-      <Header 
-        title="Seja bem-vindo, [Nome do Usuário]" 
-        subtitle="Aqui está o resumo das suas Licitações" 
+      <Header
+        title={`Seja bem-vindo, ${usuario.nome}`}
+        subtitle="Resumo rápido das suas licitações"
       />
 
-      {/* Cards de Resumo */}
+      {/* ============================================================ */}
+      {/* CARDS DE RESUMO */}
+      {/* ============================================================ */}
       <div className="row mb-4">
-        {/* Card 1: Licitações Ativas */}
-        <div className="col-md-4">
+        <div className="col-md-3">
           <Card className="h-100">
-            <h6 className="text-muted mb-3 fw-bold">Licitações Ativas</h6>
-            <h2 className="fw-bold mb-3" style={{ color: 'var(--prolicit-azul)' }}>12</h2>
-            <p className="mb-0 fw-bold" style={{ color: 'var(--prolicit-verde)' }}>
-              <FaArrowUp /> 2 novas está semana
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="text-muted mb-2 fw-bold">Licitações Ativas</h6>
+                <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-azul)' }}>
+                  {resumo.licitacoesAtivas}
+                </h2>
+              </div>
+              <FaClock size={32} style={{ color: 'var(--prolicit-azul)', opacity: 0.3 }} />
+            </div>
+            <p className="mb-0 mt-2 text-muted small">
+              {resumo.totalLicitacoes} total cadastradas
             </p>
           </Card>
         </div>
 
-        {/* Card 2: Dias de Vigência */}
-        <div className="col-md-4">
+        <div className="col-md-3">
           <Card className="h-100">
-            <h6 className="text-muted mb-3 fw-bold">Dias de Vigência</h6>
-            <h2 className="fw-bold mb-3" style={{ color: 'var(--prolicit-azul)' }}>45</h2>
-            <p className="mb-0 fw-bold text-warning">
-              3 perto do vencimento
-            </p>
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="text-muted mb-2 fw-bold">Valor Estimado</h6>
+                <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-azul)' }}>
+                  {formatarMoeda(resumo.valorTotal)}
+                </h2>
+              </div>
+              <FaInfoCircle size={32} style={{ color: 'var(--prolicit-azul)', opacity: 0.3 }} />
+            </div>
+            <p className="mb-0 mt-2 text-muted small">Total das licitações</p>
           </Card>
         </div>
 
-        {/* Card 3: Valor Total */}
-        <div className="col-md-4">
+        <div className="col-md-3">
           <Card className="h-100">
-            <h6 className="text-muted mb-3 fw-bold">Valor Total</h6>
-            <h2 className="fw-bold mb-3" style={{ color: 'var(--prolicit-azul)' }}>R$ 1.245.000</h2>
-            <p className="mb-0 text-muted fw-bold">
-              <FaInfoCircle /> R$ 450.000 a entrar
-            </p>
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="text-muted mb-2 fw-bold">Executado</h6>
+                <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-verde)' }}>
+                  {formatarMoeda(resumo.valorServicos)}
+                </h2>
+              </div>
+              <FaCheckCircle size={32} style={{ color: 'var(--prolicit-verde)', opacity: 0.3 }} />
+            </div>
+            <p className="mb-0 mt-2 text-muted small">Serviços já realizados</p>
+          </Card>
+        </div>
+
+        <div className="col-md-3">
+          <Card className="h-100">
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="text-muted mb-2 fw-bold">Saldo Pendente</h6>
+                <h2 className="fw-bold mb-0" style={{ color: '#ff6600' }}>
+                  {formatarMoeda(resumo.saldoTotal)}
+                </h2>
+              </div>
+              <FaMoneyBillWave size={32} style={{ color: '#ff6600', opacity: 0.3 }} />
+            </div>
+            <p className="mb-0 mt-2 text-muted small">Valor restante para entregar</p>
           </Card>
         </div>
       </div>
 
-      {/* Tabela de Últimas Licitações */}
-      <Card>
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h3 className="fw-bold m-0">Últimas Licitações</h3>
-          <div className="input-group" style={{ width: '300px' }}>
-            <span className="input-group-text bg-light border-end-0 rounded-start-pill">
-              <FaSearch className="text-muted" />
-            </span>
-            <input 
-              type="text" 
-              className="form-control bg-light border-start-0 rounded-end-pill" 
-              placeholder="Pesquisar Licitação..."
-            />
-          </div>
+      <div className="row">
+        {/* ============================================================ */}
+        {/* ÚLTIMAS LICITAÇÕES COM BARRA DE PROGRESSO */}
+        {/* ============================================================ */}
+        <div className="col-lg-8">
+          <Card className="h-100">
+            <h4 className="fw-bold mb-4">Licitações Ativas</h4>
+
+            <div className="table-responsive">
+              <table className="table table-hover align-middle">
+                <thead className="table-light">
+                  <tr>
+                    <th>Licitação</th>
+                    <th>Órgão</th>
+                    <th>Progresso</th>
+                    <th className="text-end">Saldo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {carregando ? (
+                    <tr>
+                      <td colSpan="4" className="text-muted py-4 text-center">Carregando...</td>
+                    </tr>
+                  ) : licitacoes.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-muted py-4 text-center">
+                        Nenhuma licitação ativa.
+                      </td>
+                    </tr>
+                  ) : (
+                    licitacoes.slice(0, 6).map((lic) => {
+                      return (
+                        <tr key={lic.id}>
+                          <td className="fw-bold">{lic.numero_processo}</td>
+                          <td>
+                            <span className="text-muted">{lic.orgao_publico}</span>
+                            {lic.data_abertura && (
+                              <>
+                                <br />
+                                <small className="text-muted">{new Date(lic.data_abertura).toLocaleDateString('pt-BR')}</small>
+                              </>
+                            )}
+                          </td>
+                          <td style={{ minWidth: '180px' }}>
+                            <small className="text-muted">
+                              {formatarMoeda(lic.valor_executado)} / {formatarMoeda(lic.valor_estimado)}
+                            </small>
+                          </td>
+                          <td className="text-end">
+                            <strong style={{ color: parseFloat(lic.saldo || 0) > 0 ? '#ff6600' : 'var(--prolicit-verde)' }}>
+                              {formatarMoeda(lic.saldo)}
+                            </strong>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         </div>
 
-        <div className="table-responsive">
-          <table className="table table-hover align-middle">
-            <thead className="table-light">
-              <tr>
-                <th scope="col">Cliente</th>
-                <th scope="col">Local</th>
-                <th scope="col">Serviço</th>
-                <th scope="col">Licitação</th>
-                <th scope="col">Data</th>
-                <th scope="col">Itens</th>
-                <th scope="col">Valor</th>
-                <th scope="col">Status</th>
-                <th scope="col">Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Linha 1 */}
-              <tr>
-                <td>Prefeitura Municipal</td>
-                <td>São Paulo, SP</td>
-                <td>Obras de Infraestrutura</td>
-                <td>#LIC0001</td>
-                <td>11/12/2004</td>
-                <td>2</td>
-                <td>R$ 42.000,00</td>
-                <td><span className="badge rounded-pill bg-prolicit-verde text-white px-3 py-2">Ativo</span></td>
-                <td><button className="btn btn-sm text-muted"><FaEllipsisV/></button></td>
-              </tr>
-              {/* Linha 2 */}
-              <tr>
-                <td>Governo do Estado</td>
-                <td>Rio de Janeiro, RJ</td>
-                <td>Serviço de TI</td>
-                <td>#LIC0002</td>
-                <td>11/12/2004</td>
-                <td>2</td>
-                <td>R$ 42.000,00</td>
-                <td><span className="badge rounded-pill bg-prolicit-verde text-white px-3 py-2">Ativo</span></td>
-                <td><button className="btn btn-sm text-muted"><FaEllipsisV/></button></td>
-              </tr>
-              {/* Linha 3 */}
-              <tr>
-                <td>Universidade federal</td>
-                <td>Jacarezinho, PR</td>
-                <td>Manutenção de Ar Condicionado</td>
-                <td>#LIC0003</td>
-                <td>11/12/2004</td>
-                <td>2</td>
-                <td>R$ 42.000,00</td>
-                <td><span className="badge rounded-pill bg-warning text-dark px-3 py-2">Pendente</span></td>
-                <td><button className="btn btn-sm text-muted"><FaEllipsisV/></button></td>
-              </tr>
-              {/* Linha 4 */}
-              <tr>
-                <td>Hospital Municipal</td>
-                <td>Curitiba, PR</td>
-                <td>Aquisição de Produtos</td>
-                <td>#LIC0004</td>
-                <td>11/12/2004</td>
-                <td>2</td>
-                <td>R$ 42.000,00</td>
-                <td><span className="badge rounded-pill bg-danger text-white px-3 py-2">Encerradas</span></td>
-                <td><button className="btn btn-sm text-muted"><FaEllipsisV/></button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {/* ============================================================ */}
+        {/* ÚLTIMOS SERVIÇOS */}
+        {/* ============================================================ */}
+        <div className="col-lg-4">
+          <Card className="h-100">
+            <h4 className="fw-bold mb-4">Últimos Serviços</h4>
 
-        <div className="d-flex justify-content-center mt-4">
-          <button className="btn text-white rounded-pill px-5 py-2 fw-bold" style={{ backgroundColor: 'var(--prolicit-azul)' }}>
-            Visualizar mais Licitações
-          </button>
+            {carregando ? (
+              <p className="text-muted text-center py-3">Carregando...</p>
+            ) : servicos.length === 0 ? (
+              <p className="text-muted text-center py-3">Nenhum serviço registrado.</p>
+            ) : (
+              <div className="list-group list-group-flush">
+                {servicos.slice(0, 5).map((serv) => (
+                  <div key={serv.id} className="list-group-item border-0 px-0">
+                    <div className="d-flex justify-content-between align-items-start">
+                      <div>
+                        <h6 className="mb-1 fw-bold">{serv.nome_servico}</h6>
+                        <small className="text-muted">{serv.orgao_publico || '-'}</small>
+                        {serv.data_execucao && (
+                          <>
+                            <br />
+                            <small className="text-muted">
+                              {new Date(serv.data_execucao).toLocaleDateString('pt-BR')}
+                            </small>
+                          </>
+                        )}
+                      </div>
+                      <span className="fw-bold" style={{ color: 'var(--prolicit-verde)' }}>
+                        {formatarMoeda(serv.valor_fixo)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
-      </Card>
+      </div>
     </Layout>
   );
 }

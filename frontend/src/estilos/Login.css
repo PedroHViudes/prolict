@@ -51,7 +51,7 @@
 }
 
 .texto-apoio {
-    font-size: 0.85rem;
+    font-size: var(--tamanho-fonte);
     color: #555;
     line-height: 1.4;
     margin-bottom: 25px;
@@ -82,14 +82,14 @@
     border: 1px solid #ccc !important;
     border-left: none !important;
     border-radius: 0 10px 10px 0 !important;
-    font-size: 0.9rem;
+    font-size: var(--tamanho-fonte);
 }
 
 /* Links e Botão */
 .link-esqueci {
     display: block;
     text-align: right;
-    font-size: 0.75rem;
+    font-size: var(--tamanho-fonte);
     color: #888;
     text-decoration: none;
     margin-top: -10px;
@@ -108,12 +108,12 @@
 .link-cadastro {
     color: var(--prolicit-azul);
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: var(--tamanho-fonte);
     font-weight: 600;
 }
 
 .rodape-suporte {
-    font-size: 0.75rem;
+    font-size: var(--tamanho-fonte);
     color: var(--prolicit-azul);
     font-weight: 500;
 }

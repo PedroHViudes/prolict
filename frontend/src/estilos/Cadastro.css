@@ -36,7 +36,7 @@
     background-color: #f8f9fa !important;
     border-left: none !important;
     border-radius: 0 10px 10px 0 !important; 
-    font-size: 0.9rem;
+    font-size: var(--tamanho-fonte);
     padding: 12px;
 }
 
@@ -54,7 +54,7 @@
 .link-login {
     color: #6c757d;
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: var(--tamanho-fonte);
     transition: 0.3s;
 }
 

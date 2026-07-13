@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // Adicionado useNavigate
+import { NavLink, useNavigate } from 'react-router-dom';
 import './ccs/sidebar.css';
 import documento from '../assets/documento.png';
 import { 
@@ -9,21 +9,30 @@ import {
   FaChartBar, 
   FaUser, 
   FaCog,
-  FaSignOutAlt // Adicionado este ícone
+  FaSignOutAlt
 } from 'react-icons/fa';
 
+/**
+ * Componente Sidebar (Menu Lateral).
+ * Exibe os links de navegação do sistema e o botão de sair.
+ * O botão "Sair" limpa o token JWT e redireciona para o login.
+ */
 export default function Sidebar() {
   const navigate = useNavigate();
 
-  // Função necessária para o botão funcionar
+  /**
+   * Realiza o logout do usuário.
+   * Remove o token e os dados do usuário do localStorage,
+   * depois redireciona para a tela de login.
+   */
   const handleLogout = () => {
-    // Adicione aqui a lógica de limpeza (ex: localStorage.clear())
-    console.log("Deslogado com sucesso");
-    navigate('/'); // Redireciona para a tela de login
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    navigate('/');
   };
 
   return (
-    <div className="d-flex flex-column  flex-shrink-0 area-sidebar vh-100">
+    <div className="d-flex flex-column flex-shrink-0 area-sidebar vh-100">
       
       {/* Área do Logo */}
       <div className="d-flex align-items-center justify-content-center p-5 header-sidebar">
@@ -38,7 +47,7 @@ export default function Sidebar() {
       {/* Links de Navegação */}
       <ul className="nav nav-pills flex-column mt-3 px-2">
         <li className="nav-item mb-1">
-          <NavLink to="/dashboard" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/dashboard" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active nav-link text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
             <FaHome className="me-3" size={20}/> Dashboard
           </NavLink>
         </li>
