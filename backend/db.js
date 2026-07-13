@@ -1,8 +1,8 @@
 const mysql = require('mysql2');
 require('dotenv').config();
 
-//minha piscina pool
-const pool = mysql.createPool({
+//minha conexão piscina
+const con = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
@@ -13,4 +13,4 @@ const pool = mysql.createPool({
 });
 
 
-module.exports = pool.promise();
+module.exports = con.promise();
