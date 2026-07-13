@@ -1,19 +1,19 @@
 const Documento = require('../models/Documento');
+const Licitacao = require('../models/Licitacao');
 
 /**
  * Controller de Documentos.
- * Gerencia as operações CRUD para documentos (orçamentos, certidões).
- * Cada documento está vinculado a uma licitação e possui data de vencimento.
+ * Verifica pertence à licitação do usuário antes de cada operação.
  */
 const DocumentoController = {
 
-    /**
-     * Lista todos os documentos de uma licitação específica.
-     * Rota: GET /api/licitacoes/:licitacaoId/documentos
-     */
     listarPorLicitacao: async (req, res) => {
         const { licitacaoId } = req.params;
         try {
+            const licitacao = await Licitacao.verificarDono(licitacaoId, req.usuario.id);
+            if (!licitacao) {
+                return res.status(404).json({ mensagem: "Licitação não encontrada." });
+            }
             const documentos = await Documento.buscarPorLicitacao(licitacaoId);
             res.status(200).json(documentos);
         } catch (erro) {
@@ -22,13 +22,9 @@ const DocumentoController = {
         }
     },
 
-    /**
-     * Lista todos os documentos do sistema.
-     * Rota: GET /api/documentos
-     */
     listarTodos: async (req, res) => {
         try {
-            const documentos = await Documento.buscarTodos();
+            const documentos = await Documento.buscarTodos(req.usuario.id);
             res.status(200).json(documentos);
         } catch (erro) {
             console.error("Erro ao listar todos os documentos:", erro);
@@ -36,36 +32,33 @@ const DocumentoController = {
         }
     },
 
-    /**
-     * Busca um documento específico pelo seu ID.
-     * Rota: GET /api/documentos/:id
-     */
     buscar: async (req, res) => {
         const { id } = req.params;
         try {
-            const documento = await Documento.buscarPorId(id);
+            const documento = await Documento.buscarPorIdComDono(id, req.usuario.id);
             if (!documento) {
                 return res.status(404).json({ mensagem: "Documento não encontrado." });
             }
-            res.status(200).json(documento);
+            const documentoCompleto = await Documento.buscarPorId(id);
+            res.status(200).json(documentoCompleto);
         } catch (erro) {
             console.error("Erro ao buscar documento:", erro);
             res.status(500).json({ mensagem: "Erro ao buscar o documento." });
         }
     },
 
-    /**
-     * Cadastra um novo documento vinculado a uma licitação.
-     * Rota: POST /api/licitacoes/:licitacaoId/documentos
-     */
     adicionar: async (req, res) => {
         const { licitacaoId } = req.params;
         const dados = req.body;
 
         try {
+            const licitacao = await Licitacao.verificarDono(licitacaoId, req.usuario.id);
+            if (!licitacao) {
+                return res.status(404).json({ mensagem: "Licitação não encontrada." });
+            }
+
             dados.licitacao_id = licitacaoId;
 
-            // Validação: nome é obrigatório
             if (!dados.nome) {
                 return res.status(400).json({ mensagem: "O nome do documento é obrigatório." });
             }
@@ -81,18 +74,13 @@ const DocumentoController = {
         }
     },
 
-    /**
-     * Atualiza os dados de um documento existente.
-     * Rota: PUT /api/documentos/:id
-     */
     atualizar: async (req, res) => {
         const { id } = req.params;
         const dados = req.body;
 
         try {
-            // Verifica se o documento existe antes de atualizar
-            const documentoExistente = await Documento.buscarPorId(id);
-            if (!documentoExistente) {
+            const documento = await Documento.buscarPorIdComDono(id, req.usuario.id);
+            if (!documento) {
                 return res.status(404).json({ mensagem: "Documento não encontrado." });
             }
 
@@ -104,16 +92,12 @@ const DocumentoController = {
         }
     },
 
-    /**
-     * Remove um documento do banco de dados.
-     * Rota: DELETE /api/documentos/:id
-     */
     excluir: async (req, res) => {
         const { id } = req.params;
 
         try {
-            const documentoExistente = await Documento.buscarPorId(id);
-            if (!documentoExistente) {
+            const documento = await Documento.buscarPorIdComDono(id, req.usuario.id);
+            if (!documento) {
                 return res.status(404).json({ mensagem: "Documento não encontrado." });
             }
 
@@ -125,15 +109,10 @@ const DocumentoController = {
         }
     },
 
-    /**
-     * Busca documentos que vencem nos próximos X dias.
-     * Utilizado para alertas de prazo de validade.
-     * Rota: GET /api/documentos/vencendo/:dias
-     */
     vencendoEm: async (req, res) => {
         const { dias } = req.params;
         try {
-            const documentos = await Documento.buscarVencendoEm(parseInt(dias));
+            const documentos = await Documento.buscarVencendoEm(parseInt(dias), req.usuario.id);
             res.status(200).json(documentos);
         } catch (erro) {
             console.error("Erro ao buscar documentos vencendo:", erro);

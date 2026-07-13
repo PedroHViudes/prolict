@@ -1,19 +1,19 @@
 const Item = require('../models/Item');
+const Lote = require('../models/Lote');
 
 /**
  * Controller de Itens.
- * Gerencia as operações CRUD para itens dentro de um lote.
- * Cada item controla a quantidade ganha vs executada (saldo disponível).
+ * Verifica pertence ao lote→licitação do usuário antes de cada operação.
  */
 const ItemController = {
 
-    /**
-     * Lista todos os itens de um lote específico.
-     * Rota: GET /api/lotes/:loteId/itens
-     */
     listarPorLote: async (req, res) => {
         const { loteId } = req.params;
         try {
+            const lote = await Lote.buscarPorIdComDono(loteId, req.usuario.id);
+            if (!lote) {
+                return res.status(404).json({ mensagem: "Lote não encontrado." });
+            }
             const itens = await Item.buscarPorLote(loteId);
             res.status(200).json(itens);
         } catch (erro) {
@@ -22,13 +22,9 @@ const ItemController = {
         }
     },
 
-    /**
-     * Lista todos os itens do sistema com dados de lote e licitação.
-     * Rota: GET /api/itens
-     */
     listarTodos: async (req, res) => {
         try {
-            const itens = await Item.buscarTodos();
+            const itens = await Item.buscarTodos(req.usuario.id);
             res.status(200).json(itens);
         } catch (erro) {
             console.error("Erro ao listar todos os itens:", erro);
@@ -36,36 +32,33 @@ const ItemController = {
         }
     },
 
-    /**
-     * Busca um item específico pelo seu ID.
-     * Rota: GET /api/itens/:id
-     */
     buscar: async (req, res) => {
         const { id } = req.params;
         try {
-            const item = await Item.buscarPorId(id);
+            const item = await Item.buscarPorIdComDono(id, req.usuario.id);
             if (!item) {
                 return res.status(404).json({ mensagem: "Item não encontrado." });
             }
-            res.status(200).json(item);
+            const itemCompleto = await Item.buscarPorId(id);
+            res.status(200).json(itemCompleto);
         } catch (erro) {
             console.error("Erro ao buscar item:", erro);
             res.status(500).json({ mensagem: "Erro ao buscar o item." });
         }
     },
 
-    /**
-     * Cadastra um novo item dentro de um lote.
-     * Rota: POST /api/lotes/:loteId/itens
-     */
     adicionar: async (req, res) => {
         const { loteId } = req.params;
         const dados = req.body;
 
         try {
+            const lote = await Lote.buscarPorIdComDono(loteId, req.usuario.id);
+            if (!lote) {
+                return res.status(404).json({ mensagem: "Lote não encontrado." });
+            }
+
             dados.lote_id = loteId;
 
-            // Validação: descrição é obrigatória
             if (!dados.descricao) {
                 return res.status(400).json({ mensagem: "A descrição do item é obrigatória." });
             }
@@ -81,18 +74,13 @@ const ItemController = {
         }
     },
 
-    /**
-     * Atualiza os dados de um item existente.
-     * Rota: PUT /api/itens/:id
-     */
     atualizar: async (req, res) => {
         const { id } = req.params;
         const dados = req.body;
 
         try {
-            // Verifica se o item existe antes de atualizar
-            const itemExistente = await Item.buscarPorId(id);
-            if (!itemExistente) {
+            const item = await Item.buscarPorIdComDono(id, req.usuario.id);
+            if (!item) {
                 return res.status(404).json({ mensagem: "Item não encontrado." });
             }
 
@@ -104,16 +92,12 @@ const ItemController = {
         }
     },
 
-    /**
-     * Remove um item do banco de dados.
-     * Rota: DELETE /api/itens/:id
-     */
     excluir: async (req, res) => {
         const { id } = req.params;
 
         try {
-            const itemExistente = await Item.buscarPorId(id);
-            if (!itemExistente) {
+            const item = await Item.buscarPorIdComDono(id, req.usuario.id);
+            if (!item) {
                 return res.status(404).json({ mensagem: "Item não encontrado." });
             }
 

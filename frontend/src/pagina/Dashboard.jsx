@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowUp, FaInfoCircle, FaMoneyBillWave, FaCheckCircle, FaClock } from 'react-icons/fa';
+import { FaInfoCircle, FaMoneyBillWave, FaCheckCircle, FaClock } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';

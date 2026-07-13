@@ -3,26 +3,23 @@ const db = require('../db');
 /**
  * Modelo de dados de Licitações.
  * Gerencia as operações CRUD completas para a tabela licitacao.
- * Uma licitação representa um edital público com seus lotes e itens.
+ * Todas as operações filtram por administrador_id para isolar dados por usuário.
  */
 const Licitacao = {
 
     /**
-     * Busca todas as licitações cadastradas, ordenadas pela data de abertura.
-     * @returns {Array} Lista de todas as licitações
+     * Busca todas as licitações do usuário logado.
      */
-    buscarTodas: async () => {
-        const sql = "SELECT * FROM licitacao ORDER BY data_abertura DESC";
-        const [linhas] = await db.query(sql);
+    buscarTodas: async (administradorId) => {
+        const sql = "SELECT * FROM licitacao WHERE administrador_id = ? ORDER BY data_abertura DESC";
+        const [linhas] = await db.query(sql, [administradorId]);
         return linhas;
     },
 
     /**
-     * Busca apenas licitações ativas com saldo calculado.
-     * Utilizado no Dashboard para exibir a tabela com progresso.
-     * @returns {Array} Lista de licitações ativas com valor_executado e saldo
+     * Busca licitações ativas do usuário com saldo calculado.
      */
-    buscarAtivas: async () => {
+    buscarAtivas: async (administradorId) => {
         const sql = `
             SELECT l.*,
                    COALESCE(s.total_servicos, 0) as valor_executado,
@@ -35,31 +32,26 @@ const Licitacao = {
                 LEFT JOIN lote lo ON i.lote_id = lo.id
                 GROUP BY lo.licitacao_id
             ) s ON l.id = s.licitacao_id
-            WHERE l.status = 'Ativa'
+            WHERE l.administrador_id = ? AND l.status = 'Ativa'
             ORDER BY l.data_abertura DESC
         `;
-        const [linhas] = await db.query(sql);
+        const [linhas] = await db.query(sql, [administradorId]);
         return linhas;
     },
 
     /**
-     * Busca uma licitação específica pelo seu ID.
-     * @param {number} id - ID da licitação
-     * @returns {Object|undefined} Dados da licitação ou undefined se não encontrada
+     * Busca uma licitação pelo ID, verificando pertence ao usuário.
      */
-    buscarPorId: async (id) => {
-        const sql = "SELECT * FROM licitacao WHERE id = ?";
-        const [linhas] = await db.query(sql, [id]);
+    buscarPorId: async (id, administradorId) => {
+        const sql = "SELECT * FROM licitacao WHERE id = ? AND administrador_id = ?";
+        const [linhas] = await db.query(sql, [id, administradorId]);
         return linhas[0];
     },
 
     /**
-     * Busca uma licitação pelo ID com saldo calculado.
-     * Saldo = valor_estimado - soma dos valor_fixo dos serviços vinculados.
-     * @param {number} id - ID da licitação
-     * @returns {Object|undefined} Dados da licitação com saldo
+     * Busca licitação pelo ID com saldo, verificando pertence ao usuário.
      */
-    buscarComSaldo: async (id) => {
+    buscarComSaldo: async (id, administradorId) => {
         const sql = `
             SELECT l.*,
                    COALESCE(s.total_servicos, 0) as valor_executado,
@@ -72,95 +64,79 @@ const Licitacao = {
                 LEFT JOIN lote lo ON i.lote_id = lo.id
                 GROUP BY lo.licitacao_id
             ) s ON l.id = s.licitacao_id
-            WHERE l.id = ?
+            WHERE l.id = ? AND l.administrador_id = ?
         `;
-        const [linhas] = await db.query(sql, [id]);
+        const [linhas] = await db.query(sql, [id, administradorId]);
         return linhas[0];
     },
 
     /**
-     * Cria uma nova licitação no banco de dados.
-     * O status padrão é 'Aberto' caso não seja informado.
-     * @param {Object} dados - Dados da licitação (numero_processo, orgao_publico, datas, valor, status)
-     * @returns {Object} Resultado da inserção com o ID gerado
+     * Cria uma nova licitação vinculada ao usuário logado.
      */
-    criar: async (dados) => {
+    criar: async (dados, administradorId) => {
         const { numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes } = dados;
         const sql = `
-            INSERT INTO licitacao (numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO licitacao (administrador_id, numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        // Converte strings vazias para null (dates e valores opcionais)
         const valorAbertura = data_abertura && data_abertura.trim() !== '' ? data_abertura : null;
         const valorVigencia = data_vigencia && data_vigencia.trim() !== '' ? data_vigencia : null;
         const valorEstimado = valor_estimado ? parseFloat(valor_estimado) || 0 : 0;
-        const valores = [numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', observacoes || null];
+        const valores = [administradorId, numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', observacoes || null];
         const [resultado] = await db.query(sql, valores);
         return resultado;
     },
 
     /**
-     * Atualiza os dados de uma licitação existente.
-     * @param {number} id - ID da licitação
-     * @param {Object} dados - Novos dados da licitação
-     * @returns {Object} Resultado da atualização
+     * Atualiza uma licitação, verificando pertence ao usuário.
      */
-    atualizar: async (id, dados) => {
+    atualizar: async (id, dados, administradorId) => {
         const { numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes } = dados;
         const sql = `
             UPDATE licitacao 
             SET numero_processo = ?, orgao_publico = ?, data_abertura = ?, data_vigencia = ?, 
                 valor_estimado = ?, status = ?, observacoes = ?
-            WHERE id = ?
+            WHERE id = ? AND administrador_id = ?
         `;
-        // Converte strings vazias para null (dates e valores opcionais)
         const valorAbertura = data_abertura && data_abertura.trim() !== '' ? data_abertura : null;
         const valorVigencia = data_vigencia && data_vigencia.trim() !== '' ? data_vigencia : null;
         const valorEstimado = valor_estimado ? parseFloat(valor_estimado) || 0 : 0;
-        const valores = [numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', observacoes || null, id];
+        const valores = [numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', observacoes || null, id, administradorId];
         const [resultado] = await db.query(sql, valores);
         return resultado;
     },
 
     /**
-     * Remove uma licitação e todos os dados vinculados (lotes, itens, serviços, documentos)
-     * devido ao CASCADE configurado nas chaves estrangeiras.
-     * @param {number} id - ID da licitação
-     * @returns {Object} Resultado da exclusão
+     * Exclui uma licitação, verificando pertence ao usuário.
      */
-    excluir: async (id) => {
-        const sql = "DELETE FROM licitacao WHERE id = ?";
-        const [resultado] = await db.query(sql, [id]);
+    excluir: async (id, administradorId) => {
+        const sql = "DELETE FROM licitacao WHERE id = ? AND administrador_id = ?";
+        const [resultado] = await db.query(sql, [id, administradorId]);
         return resultado;
     },
 
     /**
-     * Conta o total de licitações por status.
-     * Utilizado no Dashboard para exibir os cards de resumo.
-     * @returns {Object} Objeto com a contagem por status
+     * Conta licitações por status do usuário.
      */
-    contarPorStatus: async () => {
-        const sql = "SELECT status, COUNT(*) as total FROM licitacao GROUP BY status";
-        const [linhas] = await db.query(sql);
+    contarPorStatus: async (administradorId) => {
+        const sql = "SELECT status, COUNT(*) as total FROM licitacao WHERE administrador_id = ? GROUP BY status";
+        const [linhas] = await db.query(sql, [administradorId]);
         return linhas;
     },
 
     /**
-     * Soma o valor estimado de todas as licitações ativas.
-     * @returns {number} Soma dos valores estimados
+     * Soma valor estimado das licitações ativas do usuário.
      */
-    somarValorAtivas: async () => {
-        const sql = "SELECT COALESCE(SUM(valor_estimado), 0) as total FROM licitacao WHERE status = 'Ativa'";
-        const [linhas] = await db.query(sql);
+    somarValorAtivas: async (administradorId) => {
+        const sql = "SELECT COALESCE(SUM(valor_estimado), 0) as total FROM licitacao WHERE status = 'Ativa' AND administrador_id = ?";
+        const [linhas] = await db.query(sql, [administradorId]);
         return linhas[0].total;
     },
 
     /**
-     * Retorna todas as licitações com saldo calculado.
-     * Utilizado no Dashboard e Relatórios para exibir resumo geral.
-     * @returns {Array} Lista de licitações com valor_executado e saldo
+     * Retorna todas as licitações do usuário com saldo calculado.
      */
-    buscarResumoGeral: async () => {
+    buscarResumoGeral: async (administradorId) => {
         const sql = `
             SELECT l.*,
                    COALESCE(s.total_servicos, 0) as valor_executado,
@@ -173,18 +149,17 @@ const Licitacao = {
                 LEFT JOIN lote lo ON i.lote_id = lo.id
                 GROUP BY lo.licitacao_id
             ) s ON l.id = s.licitacao_id
+            WHERE l.administrador_id = ?
             ORDER BY l.data_abertura DESC
         `;
-        const [linhas] = await db.query(sql);
+        const [linhas] = await db.query(sql, [administradorId]);
         return linhas;
     },
 
     /**
-     * Retorna o resumo consolidado para o Dashboard.
-     * Conta licitações, soma valores estimados, executados e saldo total.
-     * @returns {Object} Resumo geral com totais
+     * Retorna resumo consolidado do Dashboard do usuário.
      */
-    resumoDashboard: async () => {
+    resumoDashboard: async (administradorId) => {
         const sql = `
             SELECT 
                 COUNT(*) as total_licitacoes,
@@ -199,8 +174,19 @@ const Licitacao = {
                 LEFT JOIN lote lo ON i.lote_id = lo.id
                 GROUP BY lo.licitacao_id
             ) s ON l.id = s.licitacao_id
+            WHERE l.administrador_id = ?
         `;
-        const [linhas] = await db.query(sql);
+        const [linhas] = await db.query(sql, [administradorId]);
+        return linhas[0];
+    },
+
+    /**
+     * Verifica se uma licitação pertence ao usuário.
+     * Retorna a licitação ou undefined se não pertencer.
+     */
+    verificarDono: async (licitacaoId, administradorId) => {
+        const sql = "SELECT id FROM licitacao WHERE id = ? AND administrador_id = ?";
+        const [linhas] = await db.query(sql, [licitacaoId, administradorId]);
         return linhas[0];
     }
 };
