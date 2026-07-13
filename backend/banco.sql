@@ -27,6 +27,7 @@ CREATE TABLE administrador (
 -- ============================================================
 CREATE TABLE licitacao (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    administrador_id INT NOT NULL,
     numero_processo VARCHAR(50) NOT NULL,
     orgao_publico VARCHAR(150) NOT NULL,
     data_abertura DATE,
@@ -34,7 +35,8 @@ CREATE TABLE licitacao (
     valor_estimado DECIMAL(12,2),
     status ENUM('Ativa', 'Finalizada') DEFAULT 'Ativa',
     observacoes TEXT,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (administrador_id) REFERENCES administrador(id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -127,4 +129,7 @@ INSERT INTO administrador (nome, email, senha) VALUES
 -- ============================================================
 -- CORREÇÕES PARA BANCOS EXISTENTES:
 -- ALTER TABLE licitacao MODIFY COLUMN data_abertura DATE;
+-- ALTER TABLE licitacao ADD COLUMN administrador_id INT NOT NULL AFTER id;
+-- ALTER TABLE licitacao ADD FOREIGN KEY (administrador_id) REFERENCES administrador(id) ON DELETE CASCADE;
+-- UPDATE licitacao SET administrador_id = 1 WHERE administrador_id IS NULL;
 -- ============================================================
