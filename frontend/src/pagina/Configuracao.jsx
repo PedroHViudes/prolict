@@ -157,7 +157,7 @@ export default function Configuracao() {
             onChange={() => setTamanhoFonte('grande')}
           />
           <label className="form-check-label" htmlFor="textoGrande">
-            Grande (17px)
+            Grande (20px)
           </label>
         </div>
 
