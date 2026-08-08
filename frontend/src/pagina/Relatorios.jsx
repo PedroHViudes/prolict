@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';
 import api from '../services/api';
+import '../estilos/Dashboard.css';
 
 /**
  * Página de Relatórios.
@@ -130,7 +131,7 @@ export default function Relatorios() {
         <div className="col-md-3">
           <Card className="h-100">
             <h6 className="text-muted mb-3 fw-bold">Total de Licitações</h6>
-            <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-azul)' }}>
+            <h2 className="fw-bold mb-0 cor-fundo-licitacao" >
               {licitacoes.length}
             </h2>
           </Card>
@@ -138,7 +139,7 @@ export default function Relatorios() {
         <div className="col-md-3">
           <Card className="h-100">
             <h6 className="text-muted mb-3 fw-bold">Valor Estimado Total</h6>
-            <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-azul)' }}>
+            <h2 className="fw-bold mb-0 cor-fundo-valor" >
               {formatarMoeda(totalEstimado)}
             </h2>
           </Card>
@@ -146,7 +147,7 @@ export default function Relatorios() {
         <div className="col-md-3">
           <Card className="h-100">
             <h6 className="text-muted mb-3 fw-bold">Valor Executado</h6>
-            <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-verde)' }}>
+            <h2 className="fw-bold mb-0 cor-fundo-executado" >
               {formatarMoeda(totalExecutado)}
             </h2>
           </Card>
@@ -154,7 +155,7 @@ export default function Relatorios() {
         <div className="col-md-3">
           <Card className="h-100">
             <h6 className="text-muted mb-3 fw-bold">Saldo Pendente</h6>
-            <h2 className="fw-bold mb-0" style={{ color: '#ff6600' }}>
+            <h2 className="fw-bold mb-0 cor-fundo-saldo" >
               {formatarMoeda(saldoTotal)}
             </h2>
           </Card>
