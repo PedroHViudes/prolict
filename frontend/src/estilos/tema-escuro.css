@@ -27,6 +27,8 @@ body.tema-escuro {
 
   --cor-texto-card_Saldo: #FF6600;
 
+  --cor-fundo-servico: #33CC99;
+
   /* Texto secundário - cinza claro */
   --cor-texto-muted: #cdcdcd;
   /* Sidebar texto */
@@ -43,10 +45,23 @@ body.tema-escuro {
 /* ============================================================
    TEMA ESCURO - Sobrescrições Bootstrap
    ============================================================ */
-html.tema-escuro .bg-light,
+html.tema-escuro .alert-info,
+body.tema-escuro .alert-info,
+html.tema-escuro .text-success,
+body.tema-escuro .text-success {
+  background-color: #2a2a3c !important;
+  border-color: #33CC99 !important;
+  color: #e4e4e7 !important;
+  
+}
+
+
+   html.tema-escuro .bg-light,
 body.tema-escuro .bg-light {
   background-color: var(--cor-fundo-input) !important;
 }
+
+
 
 html.tema-escuro .table,
 body.tema-escuro .table {
