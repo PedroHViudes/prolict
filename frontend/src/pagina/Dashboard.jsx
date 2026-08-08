@@ -4,6 +4,8 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';
 import api from '../services/api';
+import { calcularPrazoRestante } from '../utils/dateUtils';
+
 
 /**
  * Página de Dashboard.
@@ -95,7 +97,7 @@ export default function Dashboard() {
                   {resumo.licitacoesAtivas}
                 </h2>
               </div>
-              <FaClock size={32} style={{ color: 'var(--prolicit-azul)', opacity: 0.3 }} />
+              <FaClock size={32} style={{ opacity: 0.3 }} />
             </div>
             <p className="mb-0 mt-2 text-muted small">
               {resumo.totalLicitacoes} total cadastradas
@@ -185,10 +187,10 @@ export default function Dashboard() {
                           <td className="fw-bold">{lic.numero_processo}</td>
                           <td>
                             <span className="text-muted">{lic.orgao_publico}</span>
-                            {lic.data_abertura && (
+                            {lic.data_vigencia && (
                               <>
                                 <br />
-                                <small className="text-muted">{new Date(lic.data_abertura).toLocaleDateString('pt-BR')}</small>
+                                <small className="text-muted"> {calcularPrazoRestante(lic.data_vigencia)}</small>
                               </>
                             )}
                           </td>

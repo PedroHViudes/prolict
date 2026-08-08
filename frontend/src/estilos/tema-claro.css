@@ -1,0 +1,29 @@
+/* ============================================================
+   TEMA CLARO (Padrão)
+   ============================================================ */
+:root {
+  /* Cores da marca PROLICIT */
+  --prolicit-azul: #003366;
+  --prolicit-cinza: #b0b0b0;
+  --prolicit-preto: #1a1a1a;
+  --prolicit-branco: #ffffff;
+  --prolicit-laranja: #ff6600;
+  --prolicit-verde: #33CC99;
+  --prolicit-cinza-claro: #f8f9fa;
+
+  /* Cores do tema claro */
+  --cor-fundo: #f0f2f5;
+  --cor-fundo-card: #ffffff;
+  --cor-fundo-input: #f0f2f5;
+  --cor-fundo-sidebar: #ffffff;
+  --cor-fundo-tabela: #f8f9fa;
+  --cor-fundo-tabela-hover: #e8eaed;
+  --cor-texto: #202124;
+  --cor-texto-muted: #5f6368;
+  --cor-texto-sidebar: #3c4043;
+  --cor-borda: #dadce0;
+  --cor-borda-card: #e8eaed;
+  --cor-sombra: 0 1px 3px rgba(60,64,67,0.15);
+  --cor-texto-label: #202124;
+  --tamanho-fonte: 14px;
+}

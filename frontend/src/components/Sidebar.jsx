@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './ccs/sidebar.css';
 import documento from '../assets/documento.png';
+import logobranco from '../assets/logo_branco.png';
 import { 
   FaHome, 
   FaGavel, 
@@ -38,7 +39,7 @@ export default function Sidebar() {
       <div className="d-flex align-items-center justify-content-center p-5 header-sidebar">
         <div className="text-center">
           <div className="mb-2">
-            <img src={documento} alt="ProLicit" className='w-50 bg-light p-2 rounded-3' />
+            <img src={logobranco} alt="ProLicit" className='w-25 ' />
           </div>
           <h4 className="m-0 fs-2 fw-bold">ProLicit</h4>
         </div>
@@ -47,22 +48,22 @@ export default function Sidebar() {
       {/* Links de Navegação */}
       <ul className="nav nav-pills flex-column mt-3 px-2">
         <li className="nav-item mb-1">
-          <NavLink to="/dashboard" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active nav-link text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/dashboard" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active nav-link text-dark fw-bold  border-4 ' : 'text-dark'}`}>
             <FaHome className="me-3" size={20}/> Dashboard
           </NavLink>
         </li>
         <li className="nav-item mb-1">
-          <NavLink to="/licitacoes" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/licitacoes" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-4 ' : 'text-dark'}`}>
             <FaGavel className="me-3" size={20}/> Licitações
           </NavLink>
         </li>
         <li className="nav-item mb-1">
-          <NavLink to="/servicos" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/servicos" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-4 ' : 'text-dark'}`}>
             <FaTools className="me-3" size={20}/> Serviços
           </NavLink>
         </li>
         <li className="nav-item mb-1">
-          <NavLink to="/relatorios" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/relatorios" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
             <FaChartBar className="me-3" size={20}/> Relatórios
           </NavLink>
         </li>
@@ -72,12 +73,12 @@ export default function Sidebar() {
         </li>
         
         <li className="nav-item mb-1">
-          <NavLink to="/perfil" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/perfil" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
             <FaUser className="me-3" size={20}/> Perfil
           </NavLink>
         </li>
         <li className="nav-item mb-1">
-          <NavLink to="/configuracao" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold border-start border-4 border-primary' : 'text-dark'}`}>
+          <NavLink to="/configuracao" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
             <FaCog className="me-3" size={20}/> Configuração
           </NavLink>
         </li>
