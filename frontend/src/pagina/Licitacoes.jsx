@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Card from '../components/Card';
 import api from '../services/api';
 
+
 /**
  * Página Minhas Licitações.
  * Exibe a lista completa de licitações com opção de adicionar, editar e excluir.
@@ -56,6 +57,29 @@ export default function Licitacoes() {
       alert("Erro ao excluir licitação.");
     }
   }
+// Calculo de prazo restante para vigência da licitação
+
+  function calcularPrazoRestante(dataVigencia) {
+    if (!dataVigencia) {
+      return 'Sem vigência';
+    }
+
+    const hoje = new Date();
+    const vigencia = new Date(dataVigencia);
+    hoje.setHours(0, 0, 0, 0);
+    vigencia.setHours(0, 0, 0, 0);
+
+    const diasRestantes = Math.ceil((vigencia - hoje) / (1000 * 60 * 60 * 24));
+
+    if (diasRestantes < 0) {
+      return 'Prazo vencido';
+    }
+    if (diasRestantes === 0) {
+      return 'Vence hoje';
+    }
+
+    return `${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`;
+  }
 
   return (
     <Layout>
@@ -86,6 +110,7 @@ export default function Licitacoes() {
                 <th scope="col">Nº Processo</th>
                 <th scope="col">Valor Estimado</th>
                 <th scope="col">Data Abertura</th>
+                <th scope="col">Vigência</th>
                 <th scope="col">Status</th>
                 <th scope="col">Ações</th>
               </tr>
@@ -93,7 +118,7 @@ export default function Licitacoes() {
             <tbody>
               {carregando ? (
                 <tr>
-                  <td colSpan="6" className="text-muted py-5">
+                  <td colSpan="7" className="text-muted py-5">
                     Carregando dados...
                   </td>
                 </tr>
@@ -110,6 +135,7 @@ export default function Licitacoes() {
                     <td>{lic.numero_processo}</td>
                     <td>R$ {parseFloat(lic.valor_estimado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td>{new Date(lic.data_abertura).toLocaleDateString('pt-BR')}</td>
+                    <td>{calcularPrazoRestante(lic.data_vigencia)}</td>
                     <td>
                       <span className={`badge rounded-pill px-3 py-2 ${lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'}`}>
                         {lic.status}

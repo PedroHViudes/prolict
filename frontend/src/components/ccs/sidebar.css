@@ -4,7 +4,7 @@
   top: 0;
   left: 0;
   height: 100vh; /* Mantém a altura total */
-  overflow-y: auto; /* Permite scroll apenas dentro da sidebar se ela for muito longa */
+  overflow-y: auto; 
   z-index: 1000;
   background-color: #ffffff;
   border-right: 1px solid #eaeaea;
@@ -26,7 +26,6 @@
     font-size: var(--tamanho-fonte);
     font-weight: bold;
 }
-
 
 
 
