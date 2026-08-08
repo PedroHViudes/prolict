@@ -5,9 +5,10 @@
 @import './estilos/tema-escuro.css';
 @import './estilos/Fontes.css';
 
+
 body {
   font-family: 'Poppins', sans-serif !important;
-  font-size: var(--tamanho-fonte);
+  font-size: var(--tamanho-fonte) !important;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -15,13 +16,4 @@ body {
   background-color: var(--cor-fundo) !important;
   color: var(--cor-texto) !important;
   transition: background-color 0.3s ease, color 0.3s ease;
-};
-
-
-input, button, select, textarea { font-family: 'Poppins', sans-serif !important; }
-
-/* Sidebar - links */
-
-.nav-link { color: var(--cor-texto-sidebar) !important; transition: all 0.2s ease; }
-.nav-link:hover { background-color: var(--cor-fundo-tabela-hover) !important; }
-.nav-link.active { background-color: var(--cor-fundo-tabela) !important; color: var(--prolicit-azul) !important; }
+}
