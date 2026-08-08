@@ -371,7 +371,7 @@ export default function ServicoAdicionar() {
             ) : (
               lotesItens.map((lote) => (
                 <div key={lote.id} className="border rounded p-3 mb-4">
-                  <h5 className="fw-bold mb-3" style={{ color: 'var(--prolicit-azul)' }}>
+                  <h5 className="fw-bold mb-3 " style={{ color: 'var(--cor-fundo-servico)' }}>
                     <FaBox className="me-2" />
                     {lote.numero_lote || 'Lote sem número'}
                     {lote.descricao && <small className="text-muted ms-2">- {lote.descricao}</small>}
