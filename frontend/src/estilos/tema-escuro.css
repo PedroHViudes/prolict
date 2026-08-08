@@ -18,8 +18,17 @@ body.tema-escuro {
   --cor-fundo-tabela-hover: #33334a;
   /* Texto principal - branco suave (não branco puro) */
   --cor-texto: #e4e4e7;
+
+  --cor-texto-card_Licitacao: #ebdd82;
+
+  --cor-texto-card_Valor: #51a1fc;
+
+   --cor-texto-card_Executado: #33CC99;
+
+  --cor-texto-card_Saldo: #FF6600;
+
   /* Texto secundário - cinza claro */
-  --cor-texto-muted: #a1a1aa;
+  --cor-texto-muted: #cdcdcd;
   /* Sidebar texto */
   --cor-texto-sidebar: #d4d4d8;
   /* Bordas - cinza escuro sutil */
@@ -38,6 +47,35 @@ html.tema-escuro .bg-light,
 body.tema-escuro .bg-light {
   background-color: var(--cor-fundo-input) !important;
 }
+
+html.tema-escuro .table,
+body.tema-escuro .table {
+  background-color: var(--cor-fundo-tabela) !important;
+  color: var(--cor-texto) !important;
+}
+
+html.tema-escuro .table thead,
+body.tema-escuro .table thead,
+html.tema-escuro .table-light,
+body.tema-escuro .table-light {
+  background-color: var(--cor-fundo-tabela) !important;
+  color: var(--cor-texto) !important;
+}
+
+html.tema-escuro .table tbody tr:hover,
+body.tema-escuro .table tbody tr:hover {
+  background-color: var(--cor-fundo-tabela-hover) !important;
+}
+
+html.tema-escuro .table td,
+body.tema-escuro .table td,
+html.tema-escuro .table th,
+body.tema-escuro .table th {
+  border-color: var(--cor-borda) !important;
+  color: var(--cor-texto) !important;
+  background-color: transparent !important;
+}
+
 html.tema-escuro .bg-white,
 body.tema-escuro .bg-white {
   background-color: var(--cor-fundo-card) !important;

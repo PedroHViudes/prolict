@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../estilos/Dashboard.css';
 import { FaInfoCircle, FaMoneyBillWave, FaCheckCircle, FaClock } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
@@ -24,6 +25,7 @@ export default function Dashboard() {
     valorServicos: 0,
     saldoTotal: 0
   });
+
 
   useEffect(() => {
     const dadosUsuario = localStorage.getItem('usuario');
@@ -77,6 +79,8 @@ export default function Dashboard() {
     return `R$ ${parseFloat(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   }
 
+ 
+
   return (
     <Layout>
       <Header
@@ -93,11 +97,11 @@ export default function Dashboard() {
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-2 fw-bold">Licitações Ativas</h6>
-                <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-azul)' }}>
+                <h2 className="fw-bold mb-0 cor-fundo-licitacao">
                   {resumo.licitacoesAtivas}
                 </h2>
               </div>
-              <FaClock size={32} style={{ opacity: 0.3 }} />
+              <FaClock className="cor-fundo-licitacao" size={32} />
             </div>
             <p className="mb-0 mt-2 text-muted small">
               {resumo.totalLicitacoes} total cadastradas
@@ -110,11 +114,11 @@ export default function Dashboard() {
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-2 fw-bold">Valor Estimado</h6>
-                <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-azul)' }}>
+                <h2 className="fw-bold mb-0 cor-fundo-valor">
                   {formatarMoeda(resumo.valorTotal)}
                 </h2>
               </div>
-              <FaInfoCircle size={32} style={{ color: 'var(--prolicit-azul)', opacity: 0.3 }} />
+              <FaInfoCircle className="cor-fundo-valor" size={32} />
             </div>
             <p className="mb-0 mt-2 text-muted small">Total das licitações</p>
           </Card>
@@ -125,11 +129,11 @@ export default function Dashboard() {
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-2 fw-bold">Executado</h6>
-                <h2 className="fw-bold mb-0" style={{ color: 'var(--prolicit-verde)' }}>
+                <h2 className="fw-bold mb-0 cor-fundo-executado">
                   {formatarMoeda(resumo.valorServicos)}
                 </h2>
               </div>
-              <FaCheckCircle size={32} style={{ color: 'var(--prolicit-verde)', opacity: 0.3 }} />
+              <FaCheckCircle className="cor-fundo-executado" size={32} />
             </div>
             <p className="mb-0 mt-2 text-muted small">Serviços já realizados</p>
           </Card>
@@ -140,11 +144,11 @@ export default function Dashboard() {
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-2 fw-bold">Saldo Pendente</h6>
-                <h2 className="fw-bold mb-0" style={{ color: '#ff6600' }}>
+                <h2 className="fw-bold mb-0 cor-fundo-saldo" >
                   {formatarMoeda(resumo.saldoTotal)}
                 </h2>
               </div>
-              <FaMoneyBillWave size={32} style={{ color: '#ff6600', opacity: 0.3 }} />
+              <FaMoneyBillWave className="cor-fundo-saldo" size={32} />
             </div>
             <p className="mb-0 mt-2 text-muted small">Valor restante para entregar</p>
           </Card>
@@ -200,7 +204,7 @@ export default function Dashboard() {
                             </small>
                           </td>
                           <td className="text-end">
-                            <strong style={{ color: parseFloat(lic.saldo || 0) > 0 ? '#ff6600' : 'var(--prolicit-verde)' }}>
+                            <strong style={{ color: parseFloat(lic.saldo || 0) > 0 ? '#33cc99' : 'var(--prolicit-verde)' }}>
                               {formatarMoeda(lic.saldo)}
                             </strong>
                           </td>
@@ -226,24 +230,24 @@ export default function Dashboard() {
             ) : servicos.length === 0 ? (
               <p className="text-muted text-center py-3">Nenhum serviço registrado.</p>
             ) : (
-              <div className="list-group list-group-flush">
-                {servicos.slice(0, 5).map((serv) => (
-                  <div key={serv.id} className="list-group-item border-0 px-0">
+              <div className="list-group list-group-flush ">
+                {servicos.slice(0, 5).map((e) => (
+                  <div key={e.id} className="list-group-item border-0 px-0 bg-transparent">
                     <div className="d-flex justify-content-between align-items-start">
                       <div>
-                        <h6 className="mb-1 fw-bold">{serv.nome_servico}</h6>
-                        <small className="text-muted">{serv.orgao_publico || '-'}</small>
-                        {serv.data_execucao && (
+                        <h6 className="mb-1 fw-bold text-muted">{e.nome_servico}</h6>
+                        <small className="text-muted">{e.orgao_publico || '-'}</small>
+                        {e.data_execucao && (
                           <>
                             <br />
                             <small className="text-muted">
-                              {new Date(serv.data_execucao).toLocaleDateString('pt-BR')}
+                              {new Date(e.data_execucao).toLocaleDateString('pt-BR')}
                             </small>
                           </>
                         )}
                       </div>
                       <span className="fw-bold" style={{ color: 'var(--prolicit-verde)' }}>
-                        {formatarMoeda(serv.valor_fixo)}
+                        {formatarMoeda(e.valor_fixo)}
                       </span>
                     </div>
                   </div>

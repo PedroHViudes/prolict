@@ -1,0 +1,13 @@
+.cor-fundo-licitacao{
+    color: var(--cor-texto-card_Licitacao);
+}
+.cor-fundo-valor{
+    color: var(--cor-texto-card_Valor);
+}
+
+.cor-fundo-executado{
+    color: var(--cor-texto-card_Executado);
+}
+.cor-fundo-saldo{
+    color: var(--cor-texto-card_Saldo);
+}
