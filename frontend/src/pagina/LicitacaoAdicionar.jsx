@@ -403,7 +403,7 @@ export default function LicitacaoAdicionar() {
                             className="form-control form-control-sm" 
                             value={item.quantidade_ganha}
                             onChange={(e) => atualizarItem(loteIndice, itemIndice, 'quantidade_ganha', e.target.value)}
-                            style={{ width: '70px' }}
+                            style={{ width: '7F0px' , margin: ' 0 auto', textAlign: 'center' }}
                           />
                         </td>
                         <td>
@@ -412,7 +412,7 @@ export default function LicitacaoAdicionar() {
                             className="form-control form-control-sm" 
                             value={item.valor_unitario}
                             onChange={(e) => atualizarItem(loteIndice, itemIndice, 'valor_unitario', e.target.value)}
-                            style={{ width: '100px' }}
+                            style={{ width: '120px', margin: ' 0 auto' }}
                           />
                         </td>
                         <td>
