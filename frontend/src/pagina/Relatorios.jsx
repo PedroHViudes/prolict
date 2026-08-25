@@ -5,6 +5,9 @@ import Header from '../components/Header';
 import Card from '../components/Card';
 import api from '../services/api';
 import '../estilos/Dashboard.css';
+import Toast from '../components/Toast';
+
+
 
 /**
  * Página de Relatórios.
@@ -25,6 +28,16 @@ export default function Relatorios() {
   // Filtros de serviço
   const [filtroServicoCliente, setFiltroServicoCliente] = useState('');
   const [filtroServicoData, setFiltroServicoData] = useState('');
+
+
+//toast para exibir mensagens
+  const [toast, setToast] = useState({ visivel: false, mensagem: '' });
+
+  function exibirToast(mensagem) {
+    setToast({ visivel: true, mensagem });
+    setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
+  }
+
 
   useEffect(() => {
     async function carregarDados() {
@@ -79,7 +92,7 @@ export default function Relatorios() {
    */
   function exportarLicitacoesCSV() {
     if (licitacoesFiltradas.length === 0) {
-      alert("Nenhum dado para exportar.");
+      exibirToast("Nenhum dado para exportar.");
       return;
     }
     const cabecalho = "Licitação,Órgão,Data,Valor Estimado,Executado,Saldo,Status\n";
@@ -98,7 +111,7 @@ export default function Relatorios() {
    */
   function exportarServicosCSV() {
     if (servicosFiltrados.length === 0) {
-      alert("Nenhum dado para exportar.");
+      exibirToast("Nenhum dado para exportar.");
       return;
     }
     const cabecalho = "Data,Serviço,Licitação,Órgão,Item,Valor,Quem Recebeu,Responsável\n";
@@ -348,6 +361,12 @@ export default function Relatorios() {
           </div>
         )}
       </Card>
+        {/* Renderização do Toast Global */}
+              {toast.visivel && (
+                <Toast>
+                  {toast.mensagem}
+                </Toast>
+              )}
     </Layout>
   );
 }

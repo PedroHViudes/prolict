@@ -67,6 +67,13 @@ export default function Sidebar() {
             <FaChartBar className="me-3" size={20}/> Relatórios
           </NavLink>
         </li>
+
+        <li className="nav-item mb-1">
+          <NavLink to="/relatorios/licitacoes" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
+            <FaChartBar className="me-3" size={20}/> Relatórios Licitação
+          </NavLink>
+        </li>
+        
         
         <li className="mt-4 mb-2 px-3 text-muted texto-sidebar">
           CONFIGURAÇÕES

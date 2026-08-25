@@ -164,3 +164,44 @@ html.tema-escuro ::-webkit-scrollbar-thumb {
 html.tema-escuro ::-webkit-scrollbar-thumb:hover {
   background: var(--cor-texto-muted);
 }
+
+/* toast no tema escuro */
+
+
+html.tema-escuro .toast {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important;
+  border-color: var(--cor-borda-card) !important;
+}
+
+html.tema-escuro .toast-header {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important;
+  border-bottom: 1px solid var(--cor-borda-card) !important;
+}
+html.tema-escuro .toast-body {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important; 
+}
+
+/* modal no tema escuro */
+
+html.tema-escuro .modal-content {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important;
+  border-color: var(--cor-borda-card) !important;
+}
+html.tema-escuro .modal-header {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important;
+  border-bottom: 1px solid var(--cor-borda-card) !important;
+}
+html.tema-escuro .modal-body {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important;
+}
+html.tema-escuro .modal-footer {
+  background-color: var(--cor-fundo-card) !important;
+  color: var(--cor-texto) !important;
+  border-top: 1px solid var(--cor-borda-card) !important;
+}
