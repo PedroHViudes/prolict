@@ -29,6 +29,16 @@ export default function ServicoAdicionar() {
   const [lotesItens, setLotesItens] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
 
+
+  //toast
+  const [toast, setToast] = useState({ show: false, message: '' });
+
+  function exibirToast(message) {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: '' }), 3000);
+  }
+
+
   // Dados do formulário do serviço
   const [formData, setFormData] = useState({
     nome_servico: '',
@@ -86,7 +96,7 @@ export default function ServicoAdicionar() {
 
         } catch (erro) {
           console.error("Erro ao carregar serviço:", erro);
-          alert("Erro ao carregar dados do serviço.");
+          exibirToast("Erro ao carregar dados do serviço.");
         } finally {
           setCarregando(false);
         }
@@ -122,7 +132,7 @@ export default function ServicoAdicionar() {
       setEtapa(2);
     } catch (erro) {
       console.error("Erro ao carregar lotes e itens:", erro);
-      alert("Erro ao carregar lotes e itens da licitação.");
+      exibirToast("Erro ao carregar lotes e itens da licitação.");
     }
   }
 
@@ -164,6 +174,7 @@ export default function ServicoAdicionar() {
       const qtd = parseInt(valor) || 0;
       const valorUnitario = parseFloat(itemSelecionado.valor_unitario) || 0;
       novosDados.valor_fixo = (qtd * valorUnitario).toFixed(2);
+      exibirToast("Valor fixo recalculado automaticamente.");
     }
 
     setFormData(novosDados);
@@ -174,6 +185,7 @@ export default function ServicoAdicionar() {
    */
   function atualizarEntrega(campo, valor) {
     setEntregaData({ ...entregaData, [campo]: valor });
+    exibirToast("Dados da entrega atualizados.");
   }
 
   /**
@@ -188,8 +200,9 @@ export default function ServicoAdicionar() {
    */
   async function salvarServico() {
     if (!formData.nome_servico) {
-      alert("O nome do serviço é obrigatório.");
+      exibirToast("O nome do serviço é obrigatório.");
       return;
+
     }
 
     // Validação: quantidade não pode exceder o saldo
@@ -197,11 +210,11 @@ export default function ServicoAdicionar() {
       const qtd = parseInt(formData.quantidade) || 0;
       const saldo = itemSelecionado.saldo_disponivel || (itemSelecionado.quantidade_ganha - itemSelecionado.quantidade_executada);
       if (qtd > saldo) {
-        alert(`Quantidade inválida! Saldo disponível: ${saldo}. Você está tentando enviar ${qtd}.`);
+        exibirToast(`Quantidade inválida! Saldo disponível: ${saldo}. Você está tentando enviar ${qtd}.`);
         return;
       }
       if (qtd <= 0) {
-        alert("A quantidade deve ser maior que zero.");
+        exibirToast("A quantidade deve ser maior que zero.");
         return;
       }
     }
@@ -216,6 +229,7 @@ export default function ServicoAdicionar() {
           valor_fixo: formData.valor_fixo || 0,
           data_execucao: formData.data_execucao || null,
           descricao_detalhada: formData.descricao_detalhada
+          
         });
 
         // Atualiza ou cria entrega
@@ -226,7 +240,11 @@ export default function ServicoAdicionar() {
           } else if (entregaData.quem_recebeu || entregaData.responsavel_entrega) {
             await api.post(`/servicos/${id}/entregas`, entregaData);
           }
-        } catch (e) { /* sem entrega para atualizar */ }
+          exibirToast("Entrega atualizada com sucesso!");
+        } catch (e) { /* sem entrega para atualizar */ 
+
+          exibirToast("Erro ao atualizar entrega. Verifique os dados.");
+        }
 
       } else {
         // Cria novo serviço
@@ -248,13 +266,13 @@ export default function ServicoAdicionar() {
         }
       }
 
-      alert(ehEdicao ? "Serviço atualizado com sucesso!" : "Serviço cadastrado com sucesso!");
+      exibirToast(ehEdicao ? "Serviço atualizado com sucesso!" : "Serviço cadastrado com sucesso!");
       navigate('/servicos');
 
     } catch (erro) {
       console.error("Erro ao salvar serviço:", erro);
       const mensagemErro = erro.response?.data?.mensagem || "Erro ao salvar serviço. Verifique os dados.";
-      alert(mensagemErro);
+      exibirToast(mensagemErro);
     } finally {
       setSalvando(false);
     }
@@ -631,6 +649,14 @@ export default function ServicoAdicionar() {
           </div>
         )}
       </Card>
+
+      {/* Renderização do Toast Global */}
+                    {toast.visivel && (
+                      <Toast>
+                        {toast.mensagem}
+                      </Toast>
+                    )}
+      
     </Layout>
   );
 }

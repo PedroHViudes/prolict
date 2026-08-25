@@ -16,6 +16,7 @@ import ServicoAdicionar from './pagina/ServicoAdicionar';
 import Relatorios from './pagina/Relatorios';
 import Perfil from './pagina/Perfil';
 import Configuracao from './pagina/Configuracao';
+import RelatorioLicitacao from './pagina/RelatorioLicitacao';
 
 /**
  * Componente que protege rotas que exigem login.
@@ -101,6 +102,9 @@ export default function App() {
         } />
         <Route path="/configuracao" element={
           <RotaProtegida><Configuracao /></RotaProtegida>
+        } />
+        <Route path="/relatorios/licitacoes" element={
+          <RotaProtegida><RelatorioLicitacao /></RotaProtegida>
         } />
       </Routes>
     </Router>

@@ -3,12 +3,9 @@ import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';
 import api from '../services/api';
+import Toast from '../components/Toast';
+import ModalConfirmacao from '../components/ModalConfirmacao';
 
-/**
- * Página do Perfil do Usuário.
- * Permite visualizar, atualizar dados e senha, ou excluir a conta.
- * Conectado ao backend para persistir as alterações.
- */
 export default function Perfil() {
   // Dados do perfil
   const [nome, setNome] = useState('');
@@ -21,9 +18,18 @@ export default function Perfil() {
   const [confirmarNovaSenha, setConfirmarNovaSenha] = useState('');
   const [salvandoSenha, setSalvandoSenha] = useState(false);
 
-  /**
-   * Carrega os dados do perfil do usuário logado ao montar o componente.
-   */
+  // 1. Estado único do Toast (padronizado com 'visivel')
+  const [toast, setToast] = useState({ visivel: false, mensagem: '' });
+
+  // 2. Estado para controlar abertura/fechamento do Modal
+  const [modalExcluirAberto, setModalExcluirAberto] = useState(false);
+  
+  // 3. Dispara a mensagem e esconde automaticamente após 3.5 segundos
+  function exibirToast(mensagem) {
+    setToast({ visivel: true, mensagem });
+    setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
+  }
+
   useEffect(() => {
     async function carregarPerfil() {
       try {
@@ -32,7 +38,6 @@ export default function Perfil() {
         setEmail(resposta.data.email);
       } catch (erro) {
         console.error("Erro ao carregar perfil:", erro);
-        // Se falhar, tenta carregar do localStorage
         const dadosUsuario = localStorage.getItem('usuario');
         if (dadosUsuario) {
           const usuario = JSON.parse(dadosUsuario);
@@ -44,12 +49,9 @@ export default function Perfil() {
     carregarPerfil();
   }, []);
 
-  /**
-   * Salva as alterações no perfil (nome e e-mail).
-   */
   async function salvarPerfil() {
     if (!nome || !email) {
-      alert("Nome e e-mail são obrigatórios.");
+      exibirToast("Nome e e-mail são obrigatórios.");
       return;
     }
 
@@ -57,71 +59,59 @@ export default function Perfil() {
       setSalvandoPerfil(true);
       await api.put('/perfil', { nome, email });
       
-      // Atualiza o localStorage com os novos dados
       const dadosUsuario = JSON.parse(localStorage.getItem('usuario') || '{}');
       dadosUsuario.nome = nome;
       dadosUsuario.email = email;
       localStorage.setItem('usuario', JSON.stringify(dadosUsuario));
       
-      alert("Perfil atualizado com sucesso!");
+      exibirToast("Perfil atualizado com sucesso!");
     } catch (erro) {
       console.error("Erro ao atualizar perfil:", erro);
-      alert(erro.response?.data?.mensagem || "Erro ao atualizar perfil.");
+      exibirToast(erro.response?.data?.mensagem || "Erro ao atualizar perfil.");
     } finally {
       setSalvandoPerfil(false);
     }
   }
 
-  /**
-   * Atualiza a senha do usuário.
-   * Requer a senha atual para confirmação de segurança.
-   */
   async function atualizarSenha() {
     if (!senhaAtual || !novaSenha) {
-      alert("Preencha a senha atual e a nova senha.");
+      exibirToast("Preencha a senha atual e a nova senha.");
       return;
     }
 
     if (novaSenha !== confirmarNovaSenha) {
-      alert("As novas senhas não coincidem!");
+      exibirToast("As novas senhas não coincidem!");
       return;
     }
 
     try {
       setSalvandoSenha(true);
       await api.put('/perfil/senha', { senhaAtual, novaSenha });
-      alert("Senha atualizada com sucesso!");
+      exibirToast("Senha atualizada com sucesso!");
       setSenhaAtual('');
       setNovaSenha('');
       setConfirmarNovaSenha('');
     } catch (erro) {
       console.error("Erro ao atualizar senha:", erro);
-      alert(erro.response?.data?.mensagem || "Erro ao atualizar senha.");
+      exibirToast(erro.response?.data?.mensagem || "Erro ao atualizar senha.");
     } finally {
       setSalvandoSenha(false);
     }
   }
 
-  /**
-   * Exclui a conta do usuário após confirmação.
-   * Esta ação é irreversível.
-   */
-  async function excluirConta() {
-    if (!window.confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os dados serão perdidos.")) {
-      return;
-    }
-
+  // 4. Executado somente quando o usuário confirma dentro do Modal
+  const confirmarExclusao = async () => {
+    setModalExcluirAberto(false); // Fecha o modal primeiro
     try {
       await api.delete('/perfil');
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
-      alert("Conta excluída com sucesso.");
       window.location.href = '/';
     } catch (erro) {
       console.error("Erro ao excluir conta:", erro);
-      alert("Erro ao excluir conta.");
+      exibirToast("Erro ao excluir conta.");
     }
-  }
+  };
 
   return (
     <Layout>
@@ -134,7 +124,6 @@ export default function Perfil() {
         {/* Coluna Esquerda */}
         <div className="col-md-7">
           
-          {/* Card: Informações do Perfil */}
           <Card className="mb-4">
             <h5 className="fw-bold mb-2">Informações do Perfil</h5>
             <p className="text-muted small mb-4">
@@ -173,7 +162,6 @@ export default function Perfil() {
             </button>
           </Card>
 
-          {/* Card: Atualizar Senha */}
           <Card>
             <h5 className="fw-bold mb-2">Atualizar Senha</h5>
             <p className="text-muted small mb-4">
@@ -221,13 +209,11 @@ export default function Perfil() {
               {salvandoSenha ? "Salvando..." : "Atualizar Senha"}
             </button>
           </Card>
-
         </div>
 
         {/* Coluna Direita */}
         <div className="col-md-5">
           
-          {/* Card: Excluir Conta */}
           <Card className="mb-4">
             <h5 className="fw-bold mb-3">Excluir a Conta</h5>
             <p className="text-muted small mb-4" style={{ lineHeight: '1.6' }}>
@@ -235,15 +221,15 @@ export default function Perfil() {
               Antes de excluir sua conta, baixe todos os seus dados ou informações que deseja manter.
             </p>
 
+            {/* Apenas abre o modal visual */}
             <button 
               className="btn btn-dark w-100 fw-bold py-2 rounded-pill"
-              onClick={excluirConta}
+              onClick={() => setModalExcluirAberto(true)}
             >
               Deletar Conta
             </button>
           </Card>
 
-          {/* Card: Sobre */}
           <Card>
             <h5 className="fw-bold mb-3">Sobre o PROLICIT</h5>
             <p className="text-muted small mb-0" style={{ lineHeight: '1.6', textAlign: 'justify' }}>
@@ -252,9 +238,27 @@ export default function Perfil() {
               organizando itens, lotes e processos licitatórios de forma centralizada e segura.
             </p>
           </Card>
-
         </div>
       </div>
+
+      {/* Renderização do Toast Global */}
+      {toast.visivel && (
+        <Toast>
+          {toast.mensagem}
+        </Toast>
+      )}
+
+      {/* 5. Renderização do Modal de Confirmação */}
+      <ModalConfirmacao
+        isOpen={modalExcluirAberto}
+        title="Excluir Conta"
+        message="Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os dados serão perdidos."
+        confirmText="Sim, excluir"
+        cancelText="Cancelar"
+        confirmVariant="danger"
+        onConfirm={confirmarExclusao}
+        onCancel={() => setModalExcluirAberto(false)}
+      />
     </Layout>
   );
 }

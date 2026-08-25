@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';
+import Toast from '../components/Toast';
 
 /**
  * Página de Configurações do Sistema.
@@ -13,6 +14,14 @@ export default function Configuracao() {
   const [temaEscuro, setTemaEscuro] = useState(false);
   // Estado do tamanho da fonte ('pequena', 'media', 'grande')
   const [tamanhoFonte, setTamanhoFonte] = useState('media');
+
+  //Estado de mostrar o toast ou não
+const [toast, setToast] = useState({ visivel: false, mensagem: '' });
+ 
+function exibirToast(mensagem) {
+  setToast({ visivel: true, mensagem });
+  setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
+}
 
   /**
    * Carrega as preferências salvas no localStorage ao montar o componente.
@@ -44,8 +53,7 @@ export default function Configuracao() {
     } else {
       document.documentElement.classList.remove('tema-escuro');
       localStorage.setItem('prolicit_tema', 'claro');
-    }
-    alert("Tema aplicado com sucesso!");
+    } exibirToast("Tema aplicado com sucesso!");
   }
 
   /**
@@ -58,7 +66,7 @@ export default function Configuracao() {
     // Adiciona a classe correspondente ao tamanho selecionado
     document.documentElement.classList.add(`font-${tamanhoFonte}`);
     localStorage.setItem('prolicit_fonte', tamanhoFonte);
-    alert("Tamanho de fonte aplicado com sucesso!");
+    exibirToast("Tamanho da fonte aplicado com sucesso!");
   }
 
   return (
@@ -89,6 +97,7 @@ export default function Configuracao() {
           </label>
         </div>
         
+
         <div className="form-check mb-4">
           <input 
             className="form-check-input" 
@@ -110,6 +119,7 @@ export default function Configuracao() {
         >
           Aplicar Tema
         </button>
+        
       </Card>
 
       {/* Card: Configuração de Texto */}
@@ -168,8 +178,15 @@ export default function Configuracao() {
         >
           Aplicar Tamanho
         </button>
+
       </Card>
       
+      {/* Renderização única do Toast para qualquer tipo de mensagem */}
+      {toast.visivel && (
+        <Toast>
+          {toast.mensagem}
+        </Toast>
+      )}
     </Layout>
   );
 }

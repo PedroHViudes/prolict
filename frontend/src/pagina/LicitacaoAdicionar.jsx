@@ -33,6 +33,16 @@ export default function LicitacaoAdicionar() {
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
+
+  //toast
+  const [toast, setToast] = useState({ visivel: false, mensagem: '' });
+  
+  function exibirToast(mensagem) {
+    setToast({ visivel: true, mensagem });
+    setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
+  } 
+
+
   /**
    * Se estiver no modo edição, carrega os dados da licitação existente.
    */
@@ -64,7 +74,7 @@ export default function LicitacaoAdicionar() {
           setLotes(lotesComItens);
         } catch (erro) {
           console.error("Erro ao carregar licitação:", erro);
-          alert("Erro ao carregar dados da licitação.");
+          exibirToast("Erro ao carregar dados da licitação.");
         } finally {
           setCarregando(false);
         }
@@ -152,7 +162,7 @@ export default function LicitacaoAdicionar() {
   async function salvarLicitacao() {
     // Validação: campos obrigatórios
     if (!formData.numero_processo || !formData.orgao_publico) {
-      alert("O número do processo e o órgão público são obrigatórios.");
+      exibirToast("O número do processo e o órgão público são obrigatórios.");
       return;
     }
 
@@ -192,13 +202,13 @@ export default function LicitacaoAdicionar() {
         }
       }
 
-      alert(ehEdicao ? "Licitação atualizada com sucesso!" : "Licitação cadastrada com sucesso!");
+      exibirToast(ehEdicao ? "Licitação atualizada com sucesso!" : "Licitação cadastrada com sucesso!");
       navigate('/licitacoes');
 
     } catch (erro) {
       console.error("Erro ao salvar licitação:", erro);
       const mensagemErro = erro.response?.data?.mensagem || "Erro ao salvar licitação. Verifique os dados e tente novamente.";
-      alert(mensagemErro);
+      exibirToast(mensagemErro);
     } finally {
       setSalvando(false);
     }
@@ -452,6 +462,13 @@ export default function LicitacaoAdicionar() {
           </button>
         </div>
       </Card>
+      {/* Renderização do Toast Global */}
+                    {toast.visivel && (
+                      <Toast>
+                        {toast.mensagem}
+                      </Toast>
+                    )}
+      
     </Layout>
   );
 }

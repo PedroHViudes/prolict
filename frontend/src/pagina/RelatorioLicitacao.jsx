@@ -14,7 +14,7 @@ import Toast from '../components/Toast';
  * Exibe resumo geral de licitações com saldo e detalhes de serviços.
  * Cards de resumo + tabela de licitações + tabela de serviços com filtros.
  */
-export default function Relatorios() {
+export default function RelatorioLicitacao() {
   const [licitacoes, setLicitacoes] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [entregas, setEntregas] = useState([]);
@@ -272,86 +272,7 @@ export default function Relatorios() {
         </div>
       </Card>
 
-      {/* ============================================================ */}
-      {/* SEÇÃO 3: Tabela de Serviços com Detalhes */}
-      {/* ============================================================ */}
-      <Card className="mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h4 className="fw-bold m-0">Detalhes dos Serviços</h4>
-          <button
-            className="btn btn-sm text-white rounded-pill px-3"
-            style={{ backgroundColor: 'var(--prolicit-verde)' }}
-            onClick={exportarServicosCSV}
-          >
-            <FaFileCsv className="me-1" /> Exportar CSV
-          </button>
-        </div>
-
-        {/* Filtros de serviço */}
-        <div className="row mb-3">
-          <div className="col-md-6">
-            <input
-              type="text"
-              className="form-control form-control-sm"
-              placeholder="Filtrar por órgão/cliente..."
-              value={filtroServicoCliente}
-              onChange={(e) => setFiltroServicoCliente(e.target.value)}
-            />
-          </div>
-          <div className="col-md-6">
-            <input
-              type="date"
-              className="form-control form-control-sm"
-              value={filtroServicoData}
-              onChange={(e) => setFiltroServicoData(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="table-responsive">
-          <table className="table table-hover align-middle text-center">
-            <thead className="table-light">
-              <tr>
-                <th>Data</th>
-                <th>Serviço</th>
-                <th>Licitação</th>
-                <th>Órgão</th>
-                <th>Item</th>
-                <th>Valor</th>
-                <th>Quem Recebeu</th>
-                <th>Responsável</th>
-              </tr>
-            </thead>
-            <tbody>
-              {carregando ? (
-                <tr>
-                  <td colSpan="8" className="text-muted py-4">Carregando...</td>
-                </tr>
-              ) : servicosFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="text-muted py-4">Nenhum serviço encontrado.</td>
-                </tr>
-              ) : (
-                servicosFiltrados.map((serv) => {
-                  const entrega = buscarEntrega(serv.id);
-                  return (
-                    <tr key={serv.id}>
-                      <td>{serv.data_execucao ? new Date(serv.data_execucao).toLocaleDateString('pt-BR') : '-'}</td>
-                      <td className="fw-bold">{serv.nome_servico}</td>
-                      <td>{serv.numero_processo || '-'}</td>
-                      <td>{serv.orgao_publico || '-'}</td>
-                      <td>{serv.item_descricao || '-'}</td>
-                      <td className="text-end">{formatarMoeda(serv.valor_fixo)}</td>
-                      <td>{entrega?.quem_recebeu || '-'}</td>
-                      <td>{entrega?.responsavel_entrega || '-'}</td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
+        {/* ============================================================ */}
         {/* Total dos serviços filtrados */}
         {servicosFiltrados.length > 0 && (
           <div className="text-end mt-3">
@@ -360,7 +281,7 @@ export default function Relatorios() {
             </strong>
           </div>
         )}
-      </Card>
+
         {/* Renderização do Toast Global */}
               {toast.visivel && (
                 <Toast>
