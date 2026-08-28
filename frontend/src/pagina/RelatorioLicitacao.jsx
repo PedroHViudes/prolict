@@ -16,7 +16,6 @@ import Toast from '../components/Toast';
  */
 export default function RelatorioLicitacao() {
   const [licitacoes, setLicitacoes] = useState([]);
-  const [servicos, setServicos] = useState([]);
   const [entregas, setEntregas] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
@@ -24,13 +23,14 @@ export default function RelatorioLicitacao() {
   const [filtroOrgao, setFiltroOrgao] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [filtroData, setFiltroData] = useState('');
+  const [filtroLicitacao, setFiltroLicitacao] = useState('');
 
   // Filtros de serviço
   const [filtroServicoCliente, setFiltroServicoCliente] = useState('');
   const [filtroServicoData, setFiltroServicoData] = useState('');
 
 
-//toast para exibir mensagens
+  //toast para exibir mensagens
   const [toast, setToast] = useState({ visivel: false, mensagem: '' });
 
   function exibirToast(mensagem) {
@@ -65,11 +65,12 @@ export default function RelatorioLicitacao() {
       lic.orgao_publico?.toLowerCase().includes(filtroOrgao.toLowerCase());
     const statusMatch = !filtroStatus || lic.status === filtroStatus;
     const dataMatch = !filtroData || lic.data_abertura?.split('T')[0] === filtroData;
-    return orgaoMatch && statusMatch && dataMatch;
+    const licitacaoMatch = !filtroLicitacao || lic.numero_processo?.includes(filtroLicitacao);
+    return orgaoMatch && statusMatch && dataMatch && licitacaoMatch;
   });
 
   // Filtros de serviço
-  const servicosFiltrados = servicos.filter(serv => {
+  const LicitacoesFiltrados = licitacoes.filter(serv => {
     const clienteMatch = !filtroServicoCliente ||
       serv.orgao_publico?.toLowerCase().includes(filtroServicoCliente.toLowerCase());
     const dataMatch = !filtroServicoData ||
@@ -133,8 +134,8 @@ export default function RelatorioLicitacao() {
   return (
     <Layout>
       <Header
-        title="Relatórios"
-        subtitle="Visualize o resumo das licitações e serviços"
+        title="Relatórios Licitação"
+        subtitle="Visualize o resumo das licitações"
       />
 
       {/* ============================================================ */}
@@ -191,7 +192,18 @@ export default function RelatorioLicitacao() {
         </div>
 
         {/* Filtros de licitação */}
-        <div className="row mb-3">
+        <div className="row mb-6 mt-2 g-2">
+
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="Filtrar por licitação..."
+              value={filtroLicitacao}
+              onChange={(e) => setFiltroLicitacao(e.target.value)}
+            />
+          </div>
+
           <div className="col-md-4">
             <input
               type="text"
@@ -201,7 +213,7 @@ export default function RelatorioLicitacao() {
               onChange={(e) => setFiltroOrgao(e.target.value)}
             />
           </div>
-          <div className="col-md-4">
+          <div className="col-md-2">
             <select
               className="form-select form-select-sm"
               value={filtroStatus}
@@ -212,7 +224,7 @@ export default function RelatorioLicitacao() {
               <option value="Finalizada">Finalizada</option>
             </select>
           </div>
-          <div className="col-md-4">
+          <div className="col-md-2">
             <input
               type="date"
               className="form-control form-control-sm"
@@ -222,7 +234,7 @@ export default function RelatorioLicitacao() {
           </div>
         </div>
 
-        <div className="table-responsive">
+        <div className="table-responsive mt-3">
           <table className="table table-hover align-middle text-center">
             <thead className="table-light">
               <tr>
@@ -258,9 +270,8 @@ export default function RelatorioLicitacao() {
                       </strong>
                     </td>
                     <td>
-                      <span className={`badge ${
-                        lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'
-                      }`}>
+                      <span className={`badge ${lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'
+                        }`}>
                         {lic.status}
                       </span>
                     </td>
@@ -272,22 +283,26 @@ export default function RelatorioLicitacao() {
         </div>
       </Card>
 
-        {/* ============================================================ */}
-        {/* Total dos serviços filtrados */}
-        {servicosFiltrados.length > 0 && (
-          <div className="text-end mt-3">
-            <strong>
-              Total filtrado: {formatarMoeda(servicosFiltrados.reduce((s, serv) => s + parseFloat(serv.valor_fixo || 0), 0))}
-            </strong>
-          </div>
-        )}
+      {/* ============================================================ */}
+      {/* Total dos serviços filtrados */}
+      {licitacoesFiltradas.length > 0 ? (
+        <div className="text-end mt-3">
+          <strong>
+            Total filtrado: {formatarMoeda(licitacoesFiltradas.reduce((s, lic) => s + parseFloat(lic.valor_estimado || 0), 0))}
+          </strong>
+        </div>
+      ) : (
+        <div className="text-end mt-3 text-muted">
+          <strong>0 licitações encontradas</strong>
+        </div>
+      )}
 
-        {/* Renderização do Toast Global */}
-              {toast.visivel && (
-                <Toast>
-                  {toast.mensagem}
-                </Toast>
-              )}
+      {/* Renderização do Toast Global */}
+      {toast.visivel && (
+        <Toast>
+          {toast.mensagem}
+        </Toast>
+      )}
     </Layout>
   );
 }
