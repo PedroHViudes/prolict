@@ -10,8 +10,9 @@ import {
   FaChartBar, 
   FaUser, 
   FaCog,
-  FaSignOutAlt
+  FaSignOutAlt, 
 } from 'react-icons/fa';
+import { BiSolidReport } from 'react-icons/bi';
 
 /**
  * Componente Sidebar (Menu Lateral).
@@ -63,14 +64,14 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className="nav-item mb-1">
-          <NavLink to="/relatorios" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
-            <FaChartBar className="me-3" size={20}/> Relatórios
+          <NavLink to="/relatorios" end className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
+            <FaChartBar className="me-3" size={20}/> Relatórios Serviços
           </NavLink>
         </li>
 
         <li className="nav-item mb-1">
           <NavLink to="/relatorios/licitacoes" className={({isActive}) => `nav-link d-flex align-items-center ${isActive ? 'active bg-light text-dark fw-bold  border-4 ' : 'text-dark'}`}>
-            <FaChartBar className="me-3" size={20}/> Relatórios Licitação
+            <BiSolidReport className="me-3" size={20}/> Relatórios Licitação
           </NavLink>
         </li>
         

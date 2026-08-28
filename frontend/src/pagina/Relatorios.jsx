@@ -24,13 +24,14 @@ export default function Relatorios() {
   const [filtroOrgao, setFiltroOrgao] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [filtroData, setFiltroData] = useState('');
+  const [filtroServico, setFiltroServico] = useState('');
 
   // Filtros de serviço
   const [filtroServicoCliente, setFiltroServicoCliente] = useState('');
   const [filtroServicoData, setFiltroServicoData] = useState('');
 
 
-//toast para exibir mensagens
+  //toast para exibir mensagens
   const [toast, setToast] = useState({ visivel: false, mensagem: '' });
 
   function exibirToast(mensagem) {
@@ -72,9 +73,10 @@ export default function Relatorios() {
   const servicosFiltrados = servicos.filter(serv => {
     const clienteMatch = !filtroServicoCliente ||
       serv.orgao_publico?.toLowerCase().includes(filtroServicoCliente.toLowerCase());
+    const servicoMatch = !filtroServico || serv.nome_servico?.toLowerCase().includes(filtroServico.toLowerCase());
     const dataMatch = !filtroServicoData ||
       serv.data_execucao?.split('T')[0] === filtroServicoData;
-    return clienteMatch && dataMatch;
+    return clienteMatch && servicoMatch && dataMatch;
   });
 
   // Totais dos cards
@@ -133,7 +135,7 @@ export default function Relatorios() {
   return (
     <Layout>
       <Header
-        title="Relatórios"
+        title="Relatórios Serviços "
         subtitle="Visualize o resumo das licitações e serviços"
       />
 
@@ -176,103 +178,6 @@ export default function Relatorios() {
       </div>
 
       {/* ============================================================ */}
-      {/* SEÇÃO 2: Tabela de Licitações com Saldo */}
-      {/* ============================================================ */}
-      <Card className="mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h4 className="fw-bold m-0">Licitações com Saldo</h4>
-          <button
-            className="btn btn-sm text-white rounded-pill px-3"
-            style={{ backgroundColor: 'var(--prolicit-verde)' }}
-            onClick={exportarLicitacoesCSV}
-          >
-            <FaFileCsv className="me-1" /> Exportar CSV
-          </button>
-        </div>
-
-        {/* Filtros de licitação */}
-        <div className="row mb-3">
-          <div className="col-md-4">
-            <input
-              type="text"
-              className="form-control form-control-sm"
-              placeholder="Filtrar por órgão..."
-              value={filtroOrgao}
-              onChange={(e) => setFiltroOrgao(e.target.value)}
-            />
-          </div>
-          <div className="col-md-4">
-            <select
-              className="form-select form-select-sm"
-              value={filtroStatus}
-              onChange={(e) => setFiltroStatus(e.target.value)}
-            >
-              <option value="">Todos os status</option>
-              <option value="Ativa">Ativa</option>
-              <option value="Finalizada">Finalizada</option>
-            </select>
-          </div>
-          <div className="col-md-4">
-            <input
-              type="date"
-              className="form-control form-control-sm"
-              value={filtroData}
-              onChange={(e) => setFiltroData(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="table-responsive">
-          <table className="table table-hover align-middle text-center">
-            <thead className="table-light">
-              <tr>
-                <th>Licitação</th>
-                <th>Órgão</th>
-                <th>Data</th>
-                <th>Valor Estimado</th>
-                <th>Executado</th>
-                <th>Saldo</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {carregando ? (
-                <tr>
-                  <td colSpan="7" className="text-muted py-4">Carregando...</td>
-                </tr>
-              ) : licitacoesFiltradas.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-muted py-4">Nenhuma licitação encontrada.</td>
-                </tr>
-              ) : (
-                licitacoesFiltradas.map((lic) => (
-                  <tr key={lic.id}>
-                    <td className="fw-bold">{lic.numero_processo}</td>
-                    <td>{lic.orgao_publico}</td>
-                    <td>{lic.data_abertura ? new Date(lic.data_abertura).toLocaleDateString('pt-BR') : '-'}</td>
-                    <td>{formatarMoeda(lic.valor_estimado)}</td>
-                    <td>{formatarMoeda(lic.valor_executado)}</td>
-                    <td>
-                      <strong style={{ color: parseFloat(lic.saldo || 0) > 0 ? '#ff6600' : 'var(--prolicit-verde)' }}>
-                        {formatarMoeda(lic.saldo)}
-                      </strong>
-                    </td>
-                    <td>
-                      <span className={`badge ${
-                        lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'
-                      }`}>
-                        {lic.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* ============================================================ */}
       {/* SEÇÃO 3: Tabela de Serviços com Detalhes */}
       {/* ============================================================ */}
       <Card className="mb-4">
@@ -289,7 +194,16 @@ export default function Relatorios() {
 
         {/* Filtros de serviço */}
         <div className="row mb-3">
-          <div className="col-md-6">
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="Filtrar por serviço..."
+              value={filtroServico}
+              onChange={(e) => setFiltroServico(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
             <input
               type="text"
               className="form-control form-control-sm"
@@ -298,7 +212,7 @@ export default function Relatorios() {
               onChange={(e) => setFiltroServicoCliente(e.target.value)}
             />
           </div>
-          <div className="col-md-6">
+          <div className="col-md-4">
             <input
               type="date"
               className="form-control form-control-sm"
@@ -361,12 +275,12 @@ export default function Relatorios() {
           </div>
         )}
       </Card>
-        {/* Renderização do Toast Global */}
-              {toast.visivel && (
-                <Toast>
-                  {toast.mensagem}
-                </Toast>
-              )}
+      {/* Renderização do Toast Global */}
+      {toast.visivel && (
+        <Toast>
+          {toast.mensagem}
+        </Toast>
+      )}
     </Layout>
   );
 }
