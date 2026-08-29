@@ -205,3 +205,48 @@ html.tema-escuro .modal-footer {
   color: var(--cor-texto) !important;
   border-top: 1px solid var(--cor-borda-card) !important;
 }
+
+
+/* input no tema escuro */
+html.tema-escuro .form-control {
+  background-color: var(--cor-fundo-input) !important;
+  color: var(--cor-texto) !important;
+  border-color: var(--cor-borda) !important;
+}
+html.tema-escuro .form-control:focus {
+  background-color: var(--cor-fundo-input) !important;
+  color: var(--cor-texto) !important;
+  border-color: var(--cor-texto) !important;
+  box-shadow: 0 0 0 0.2rem rgba(100, 100, 100, 0.25);
+}
+html.tema-escuro .form-control::placeholder {
+  color: var(--cor-texto-muted) !important;
+}
+html.tema-escuro .form-label {
+  color: var(--cor-texto-label) !important;
+}
+
+html.tema-escuro .form-check-label {
+  color: var(--cor-texto) !important;
+}
+
+html.tema-escuro .form-check-input:checked {
+  background-color: var(--cor-fundo-servico) !important;
+  border-color: var(--cor-texto) !important;
+  box-shadow: none !important;
+}
+
+
+
+html.tema-escuro .form-select {
+  background-color: var(--cor-fundo-input) !important;
+  color: var(--cor-texto) !important;
+  border-color: var(--cor-borda) !important;
+}
+
+html.tema-escuro .form-select:focus {
+  background-color: var(--cor-fundo-input) !important;
+  color: var(--cor-texto) !important;
+  border-color: var(--cor-texto) !important;
+  box-shadow: 0 0 0 0.2rem rgba(100, 100, 100, 0.25);
+}

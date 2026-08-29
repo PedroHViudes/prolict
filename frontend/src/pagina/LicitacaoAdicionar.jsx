@@ -36,11 +36,11 @@ export default function LicitacaoAdicionar() {
 
   //toast
   const [toast, setToast] = useState({ visivel: false, mensagem: '' });
-  
+
   function exibirToast(mensagem) {
     setToast({ visivel: true, mensagem });
     setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
-  } 
+  }
 
 
   /**
@@ -226,9 +226,9 @@ export default function LicitacaoAdicionar() {
 
   return (
     <Layout>
-      <Header 
-        title={ehEdicao ? "Editar Licitação" : "Adicionar Nova Licitação Ganha"} 
-        subtitle={ehEdicao ? "Atualize os dados do contrato" : "Preencha os dados do novo contrato e seus itens"} 
+      <Header
+        title={ehEdicao ? "Editar Licitação" : "Adicionar Nova Licitação Ganha"}
+        subtitle={ehEdicao ? "Atualize os dados do contrato" : "Preencha os dados do novo contrato e seus itens"}
       />
 
       <Card>
@@ -237,9 +237,9 @@ export default function LicitacaoAdicionar() {
         <div className="row mb-4">
           <div className="col-md-6 mb-3">
             <label className="form-label fw-bold">Órgão Público / Cliente</label>
-            <input 
-              type="text" 
-              className="form-control bg-light" 
+            <input
+              type="text"
+              className="form-control bg-light"
               value={formData.orgao_publico}
               onChange={(e) => atualizarCampo('orgao_publico', e.target.value)}
               placeholder="Ex: Prefeitura de Jacarezinho"
@@ -247,9 +247,9 @@ export default function LicitacaoAdicionar() {
           </div>
           <div className="col-md-6 mb-3">
             <label className="form-label fw-bold">Nº da Licitação / Processo</label>
-            <input 
-              type="text" 
-              className="form-control bg-light" 
+            <input
+              type="text"
+              className="form-control bg-light"
               value={formData.numero_processo}
               onChange={(e) => atualizarCampo('numero_processo', e.target.value)}
               placeholder="Ex: 001/2025"
@@ -257,27 +257,27 @@ export default function LicitacaoAdicionar() {
           </div>
           <div className="col-md-3 mb-3">
             <label className="form-label fw-bold">Data de Início</label>
-            <input 
-              type="date" 
-              className="form-control bg-light" 
+            <input
+              type="date"
+              className="form-control bg-light"
               value={formData.data_abertura}
               onChange={(e) => atualizarCampo('data_abertura', e.target.value)}
             />
           </div>
           <div className="col-md-3 mb-3">
             <label className="form-label fw-bold">Data de Término</label>
-            <input 
-              type="date" 
-              className="form-control bg-light" 
+            <input
+              type="date"
+              className="form-control bg-light"
               value={formData.data_vigencia}
               onChange={(e) => atualizarCampo('data_vigencia', e.target.value)}
             />
           </div>
           <div className="col-md-3 mb-3">
             <label className="form-label fw-bold">Valor Estimado (R$)</label>
-            <input 
-              type="number" 
-              className="form-control bg-light" 
+            <input
+              type="number"
+              className="form-control bg-light"
               value={formData.valor_estimado}
               onChange={(e) => atualizarCampo('valor_estimado', e.target.value)}
               placeholder="0,00"
@@ -285,8 +285,8 @@ export default function LicitacaoAdicionar() {
           </div>
           <div className="col-md-3 mb-3">
             <label className="form-label fw-bold">Status</label>
-            <select 
-              className="form-select bg-light" 
+            <select
+              className="form-select bg-light"
               value={formData.status}
               onChange={(e) => atualizarCampo('status', e.target.value)}
             >
@@ -298,8 +298,8 @@ export default function LicitacaoAdicionar() {
 
         <div className="mb-4">
           <label className="form-label fw-bold">Observações</label>
-          <textarea 
-            className="form-control bg-light" 
+          <textarea
+            className="form-control bg-light"
             rows="3"
             value={formData.observacoes}
             onChange={(e) => atualizarCampo('observacoes', e.target.value)}
@@ -312,8 +312,8 @@ export default function LicitacaoAdicionar() {
         {/* Seção: Lotes e Itens */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold m-0">Lotes e Itens</h4>
-          <button 
-            className="btn text-white rounded-pill px-4 fw-bold" 
+          <button
+            className="btn text-white rounded-pill px-4 fw-bold"
             style={{ backgroundColor: 'var(--prolicit-azul)' }}
             onClick={adicionarLote}
           >
@@ -330,7 +330,7 @@ export default function LicitacaoAdicionar() {
             <div key={loteIndice} className="border rounded p-3 mb-4 bg-light">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="fw-bold m-0">Lote {loteIndice + 1}</h5>
-                <button 
+                <button
                   className="btn btn-sm btn-outline-danger"
                   onClick={() => removerLote(loteIndice)}
                 >
@@ -341,27 +341,27 @@ export default function LicitacaoAdicionar() {
               <div className="row mb-3">
                 <div className="col-md-4">
                   <label className="form-label fw-bold small">Nº do Lote</label>
-                  <input 
-                    type="text" 
-                    className="form-control form-control-sm" 
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
                     value={lote.numero_lote}
                     onChange={(e) => atualizarLote(loteIndice, 'numero_lote', e.target.value)}
                   />
                 </div>
                 <div className="col-md-4">
                   <label className="form-label fw-bold small">Valor Arrematado (R$)</label>
-                  <input 
-                    type="number" 
-                    className="form-control form-control-sm" 
+                  <input
+                    type="number"
+                    className="form-control form-control-sm"
                     value={lote.valor_total_arrematado}
                     onChange={(e) => atualizarLote(loteIndice, 'valor_total_arrematado', e.target.value)}
                   />
                 </div>
                 <div className="col-md-4">
                   <label className="form-label fw-bold small">Descrição</label>
-                  <input 
-                    type="text" 
-                    className="form-control form-control-sm" 
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
                     value={lote.descricao}
                     onChange={(e) => atualizarLote(loteIndice, 'descricao', e.target.value)}
                   />
@@ -371,7 +371,7 @@ export default function LicitacaoAdicionar() {
               {/* Itens do Lote */}
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="fw-bold small">Itens do Lote</span>
-                <button 
+                <button
                   className="btn btn-sm btn-outline-primary"
                   onClick={() => adicionarItem(loteIndice)}
                 >
@@ -379,11 +379,11 @@ export default function LicitacaoAdicionar() {
                 </button>
               </div>
 
-              <table className="table table-sm align-middle text-center mb-0">
+              <table className="table table-sm align-middle text-center mb-0 p-4">
                 <thead className="table-light">
                   <tr>
                     <th className="text-start">Descrição do Item</th>
-                    <th>Qtde.</th>
+                    <th>Quantidade.</th>
                     <th>Valor Unit. (R$)</th>
                     <th>Ação</th>
                   </tr>
@@ -399,34 +399,35 @@ export default function LicitacaoAdicionar() {
                     lote.itens.map((item, itemIndice) => (
                       <tr key={itemIndice}>
                         <td className="text-start">
-                          <input 
-                            type="text" 
-                            className="form-control form-control-sm" 
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
                             value={item.descricao}
                             onChange={(e) => atualizarItem(loteIndice, itemIndice, 'descricao', e.target.value)}
                             placeholder="Descrição do item"
+                            style={{ margin : '0', width: '100%' }}
                           />
                         </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            className="form-control form-control-sm" 
+                        <td >
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
                             value={item.quantidade_ganha}
                             onChange={(e) => atualizarItem(loteIndice, itemIndice, 'quantidade_ganha', e.target.value)}
-                            style={{ width: '7F0px' , margin: ' 0 auto', textAlign: 'center' }}
+                            style={{ width: '120px', margin: '0 auto' , textAlign: 'center' }}
                           />
                         </td>
-                        <td>
-                          <input 
-                            type="number" 
-                            className="form-control form-control-sm" 
+                        <td className="text-center">
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
                             value={item.valor_unitario}
                             onChange={(e) => atualizarItem(loteIndice, itemIndice, 'valor_unitario', e.target.value)}
-                            style={{ width: '120px', margin: ' 0 auto' }}
+                            style={{ width: '120px', margin: '0 auto' , textAlign: 'center' }}
                           />
                         </td>
                         <td>
-                          <button 
+                          <button
                             className="btn btn-sm btn-outline-danger"
                             onClick={() => removerItem(loteIndice, itemIndice)}
                           >
@@ -444,17 +445,17 @@ export default function LicitacaoAdicionar() {
 
         {/* Botões de Ação */}
         <div className="d-flex gap-3 mt-4">
-          <button 
-            className="btn text-white px-5 py-2 fw-bold rounded-3" 
+          <button
+            className="btn text-white px-5 py-2 fw-bold rounded-3"
             style={{ backgroundColor: 'var(--prolicit-verde)' }}
             onClick={salvarLicitacao}
             disabled={salvando}
           >
             {salvando ? "Salvando..." : (ehEdicao ? "Atualizar Licitação" : "Salvar Licitação")}
           </button>
-          <button 
-            type="button" 
-            className="btn text-white px-5 py-2 fw-bold rounded-3" 
+          <button
+            type="button"
+            className="btn text-white px-5 py-2 fw-bold rounded-3"
             style={{ backgroundColor: '#4a5568' }}
             onClick={() => navigate('/licitacoes')}
           >
@@ -463,12 +464,12 @@ export default function LicitacaoAdicionar() {
         </div>
       </Card>
       {/* Renderização do Toast Global */}
-                    {toast.visivel && (
-                      <Toast>
-                        {toast.mensagem}
-                      </Toast>
-                    )}
-      
+      {toast.visivel && (
+        <Toast>
+          {toast.mensagem}
+        </Toast>
+      )}
+
     </Layout>
   );
 }
