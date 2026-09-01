@@ -1,5 +1,6 @@
 const Licitacao = require('../models/Licitacao');
 const Item = require('../models/Item');
+const Lote = require('../models/Lote');
 
 /**
  * Controller de Licitações.
@@ -81,6 +82,12 @@ const LicitacaoController = {
 
             if (dados.valor_estimado) {
                 dados.valor_estimado = parseFloat(dados.valor_estimado) || 0;
+                
+                // Validação MVC: O novo valor estimado não pode ser menor que a soma dos lotes já cadastrados
+                const somaAtualLotes = await Lote.somarLotesLicitacao(id);
+                if (dados.valor_estimado < somaAtualLotes) {
+                    return res.status(400).json({ mensagem: `O novo valor estimado não pode ser menor que a soma dos lotes cadastrados (R$ ${somaAtualLotes.toFixed(2)}).` });
+                }
             }
 
             await Licitacao.atualizar(id, dados, req.usuario.id);

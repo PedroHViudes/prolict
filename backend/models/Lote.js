@@ -12,6 +12,21 @@ const Lote = {
         return linhas;
     },
 
+    /**
+     * Soma o valor de todos os lotes de uma licitação, exceto o lote ignorado (opcional).
+     * Usado para validação de limites no backend MVC.
+     */
+    somarLotesLicitacao: async (licitacaoId, ignorarLoteId = null) => {
+        let sql = "SELECT COALESCE(SUM(valor_total_arrematado), 0) as total FROM lote WHERE licitacao_id = ?";
+        const valores = [licitacaoId];
+        if (ignorarLoteId) {
+            sql += " AND id != ?";
+            valores.push(ignorarLoteId);
+        }
+        const [linhas] = await db.query(sql, valores);
+        return parseFloat(linhas[0].total);
+    },
+
     buscarPorId: async (id) => {
         const sql = "SELECT * FROM lote WHERE id = ?";
         const [linhas] = await db.query(sql, [id]);

@@ -4,6 +4,7 @@ import { FaPlus, FaTrash } from 'react-icons/fa';
 import Layout from '../components/Layout';
 import Header from '../components/Header';
 import Card from '../components/Card';
+import Toast from '../components/Toast';
 import api from '../services/api';
 
 /**
@@ -25,6 +26,7 @@ export default function LicitacaoAdicionar() {
     data_vigencia: '',
     valor_estimado: '',
     status: 'Ativa',
+    tipo: 'Serviços',
     observacoes: ''
   });
 
@@ -32,6 +34,9 @@ export default function LicitacaoAdicionar() {
   const [lotes, setLotes] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  
+  // Estado para armazenar os campos com erro
+  const [erros, setErros] = useState({ licitacao: false, lotes: [] });
 
 
   //toast
@@ -60,6 +65,7 @@ export default function LicitacaoAdicionar() {
             data_vigencia: dados.data_vigencia ? dados.data_vigencia.split('T')[0] : '',
             valor_estimado: dados.valor_estimado || '',
             status: dados.status || 'Ativa',
+            tipo: dados.tipo || 'Serviços',
             observacoes: dados.observacoes || ''
           });
 
@@ -88,6 +94,7 @@ export default function LicitacaoAdicionar() {
    */
   function atualizarCampo(campo, valor) {
     setFormData({ ...formData, [campo]: valor });
+    if (campo === 'valor_estimado') setErros({ ...erros, licitacao: false });
   }
 
   /**
@@ -118,6 +125,9 @@ export default function LicitacaoAdicionar() {
     const novosLotes = [...lotes];
     novosLotes[indice] = { ...novosLotes[indice], [campo]: valor };
     setLotes(novosLotes);
+    if (campo === 'valor_total_arrematado') {
+      setErros({ ...erros, lotes: erros.lotes.filter(l => l !== indice) });
+    }
   }
 
   /**
@@ -165,6 +175,43 @@ export default function LicitacaoAdicionar() {
       exibirToast("O número do processo e o órgão público são obrigatórios.");
       return;
     }
+
+    // Validação de Regras de Negócio: Lotes e Itens
+    const valorEstimadoLicitacao = parseFloat(formData.valor_estimado) || 0;
+    let somaLotes = 0;
+    let novosErros = { licitacao: false, lotes: [] };
+    let temErro = false;
+
+    for (let i = 0; i < lotes.length; i++) {
+      const lote = lotes[i];
+      const valorLote = parseFloat(lote.valor_total_arrematado) || 0;
+      somaLotes += valorLote;
+
+      let somaItens = 0;
+      for (let j = 0; j < lote.itens.length; j++) {
+        const item = lote.itens[j];
+        const valorItem = (parseFloat(item.quantidade_ganha) || 0) * (parseFloat(item.valor_unitario) || 0);
+        somaItens += valorItem;
+      }
+
+      // Validação 1: A soma dos itens não pode ser maior que o valor do lote
+      if (somaItens > valorLote) {
+        exibirToast(`A soma dos itens (R$ ${somaItens.toFixed(2)}) do ${lote.numero_lote || 'Lote ' + (i + 1)} ultrapassa o valor arrematado do lote (R$ ${valorLote.toFixed(2)}).`);
+        novosErros.lotes.push(i);
+        temErro = true;
+      }
+    }
+
+    // Validação 2: A soma dos lotes não pode passar do valor total da licitação
+    if (somaLotes > valorEstimadoLicitacao) {
+      exibirToast(`A soma total dos lotes (R$ ${somaLotes.toFixed(2)}) ultrapassa o valor estimado da licitação (R$ ${valorEstimadoLicitacao.toFixed(2)}).`);
+      novosErros.licitacao = true;
+      temErro = true;
+    }
+
+    setErros(novosErros);
+
+    if (temErro) return;
 
     try {
       setSalvando(true);
@@ -277,13 +324,13 @@ export default function LicitacaoAdicionar() {
             <label className="form-label fw-bold">Valor Estimado (R$)</label>
             <input
               type="number"
-              className="form-control bg-light"
+              className={`form-control bg-light ${erros.licitacao ? 'is-invalid border-danger border-2' : ''}`}
               value={formData.valor_estimado}
               onChange={(e) => atualizarCampo('valor_estimado', e.target.value)}
               placeholder="0,00"
             />
           </div>
-          <div className="col-md-3 mb-3">
+          <div className="col-md-2 mb-3">
             <label className="form-label fw-bold">Status</label>
             <select
               className="form-select bg-light"
@@ -292,6 +339,18 @@ export default function LicitacaoAdicionar() {
             >
               <option value="Ativa">Ativa</option>
               <option value="Finalizada">Finalizada</option>
+            </select>
+          </div>
+          <div className="col-md-2 mb-3">
+            <label className="form-label fw-bold">Tipo</label>
+            <select
+              className="form-select bg-light"
+              value={formData.tipo}
+              onChange={(e) => atualizarCampo('tipo', e.target.value)}
+            >
+              <option value="Serviços">Serviços</option>
+              <option value="Equipamentos">Equipamentos</option>
+              <option value="Ambos">Ambos</option>
             </select>
           </div>
         </div>
@@ -352,7 +411,7 @@ export default function LicitacaoAdicionar() {
                   <label className="form-label fw-bold small">Valor Arrematado (R$)</label>
                   <input
                     type="number"
-                    className="form-control form-control-sm"
+                    className={`form-control form-control-sm ${erros.lotes.includes(loteIndice) ? 'is-invalid border-danger border-2' : ''}`}
                     value={lote.valor_total_arrematado}
                     onChange={(e) => atualizarLote(loteIndice, 'valor_total_arrematado', e.target.value)}
                   />
