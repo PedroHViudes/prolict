@@ -1,5 +1,6 @@
 const Lote = require('../models/Lote');
 const Licitacao = require('../models/Licitacao');
+const Item = require('../models/Item');
 
 /**
  * Controller de Lotes.
@@ -46,6 +47,14 @@ const LoteController = {
                 return res.status(404).json({ mensagem: "Licitação não encontrada." });
             }
 
+            const licitacaoCompleta = await Licitacao.buscarPorId(licitacaoId, req.usuario.id);
+            const somaAtualLotes = await Lote.somarLotesLicitacao(licitacaoId);
+            const valorNovoLote = parseFloat(dados.valor_total_arrematado) || 0;
+
+            if (somaAtualLotes + valorNovoLote > licitacaoCompleta.valor_estimado) {
+                return res.status(400).json({ mensagem: `O valor deste lote excede o limite estimado da licitação (Restante: R$ ${(licitacaoCompleta.valor_estimado - somaAtualLotes).toFixed(2)}).` });
+            }
+
             dados.licitacao_id = licitacaoId;
 
             if (!dados.numero_lote) {
@@ -71,6 +80,21 @@ const LoteController = {
             const lote = await Lote.buscarPorIdComDono(id, req.usuario.id);
             if (!lote) {
                 return res.status(404).json({ mensagem: "Lote não encontrado." });
+            }
+
+            // Validação 1: Soma de Lotes <= Licitacao
+            const licitacaoCompleta = await Licitacao.buscarPorId(lote.licitacao_id, req.usuario.id);
+            const somaAtualLotes = await Lote.somarLotesLicitacao(lote.licitacao_id, id);
+            const valorNovoLote = parseFloat(dados.valor_total_arrematado) || 0;
+
+            if (somaAtualLotes + valorNovoLote > licitacaoCompleta.valor_estimado) {
+                return res.status(400).json({ mensagem: `O valor deste lote excede o limite estimado da licitação.` });
+            }
+
+            // Validação 2: Novo Valor do Lote >= Soma dos Itens já existentes
+            const somaItens = await Item.somarItensLote(id);
+            if (valorNovoLote < somaItens) {
+                return res.status(400).json({ mensagem: `O valor do lote não pode ser menor que a soma de seus itens (R$ ${somaItens.toFixed(2)}).` });
             }
 
             await Lote.atualizar(id, dados);

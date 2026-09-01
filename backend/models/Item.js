@@ -13,6 +13,22 @@ const Item = {
         return linhas;
     },
 
+    /**
+     * Soma o valor total financeiro (quantidade * valor_unitario) de todos os itens de um lote,
+     * exceto o ignorado (usado em updates).
+     * Usado para validação MVC.
+     */
+    somarItensLote: async (loteId, ignorarItemId = null) => {
+        let sql = "SELECT COALESCE(SUM(quantidade_ganha * valor_unitario), 0) as total FROM item WHERE lote_id = ?";
+        const valores = [loteId];
+        if (ignorarItemId) {
+            sql += " AND id != ?";
+            valores.push(ignorarItemId);
+        }
+        const [linhas] = await db.query(sql, valores);
+        return parseFloat(linhas[0].total);
+    },
+
     buscarPorId: async (id) => {
         const sql = `
             SELECT i.*, l.numero_lote, l.valor_total_arrematado,

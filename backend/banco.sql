@@ -34,6 +34,7 @@ CREATE TABLE licitacao (
     data_vigencia DATE,
     valor_estimado DECIMAL(12,2),
     status ENUM('Ativa', 'Finalizada') DEFAULT 'Ativa',
+    tipo ENUM('Serviços', 'Equipamentos', 'Ambos') DEFAULT 'Serviços',
     observacoes TEXT,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (administrador_id) REFERENCES administrador(id) ON DELETE CASCADE

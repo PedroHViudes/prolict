@@ -57,6 +57,13 @@ const ItemController = {
                 return res.status(404).json({ mensagem: "Lote não encontrado." });
             }
 
+            const somaAtualItens = await Item.somarItensLote(loteId);
+            const valorNovoItem = (parseFloat(dados.quantidade_ganha) || 0) * (parseFloat(dados.valor_unitario) || 0);
+
+            if (somaAtualItens + valorNovoItem > lote.valor_total_arrematado) {
+                return res.status(400).json({ mensagem: `A soma dos itens excede o valor arrematado do lote (Restante: R$ ${(lote.valor_total_arrematado - somaAtualItens).toFixed(2)}).` });
+            }
+
             dados.lote_id = loteId;
 
             if (!dados.descricao) {
@@ -82,6 +89,14 @@ const ItemController = {
             const item = await Item.buscarPorIdComDono(id, req.usuario.id);
             if (!item) {
                 return res.status(404).json({ mensagem: "Item não encontrado." });
+            }
+
+            const lote = await Lote.buscarPorId(item.lote_id);
+            const somaAtualItens = await Item.somarItensLote(item.lote_id, id);
+            const valorNovoItem = (parseFloat(dados.quantidade_ganha) || 0) * (parseFloat(dados.valor_unitario) || 0);
+
+            if (somaAtualItens + valorNovoItem > lote.valor_total_arrematado) {
+                return res.status(400).json({ mensagem: `A soma dos itens excede o valor arrematado do lote.` });
             }
 
             await Item.atualizar(id, dados);

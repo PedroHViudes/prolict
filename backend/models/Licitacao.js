@@ -74,15 +74,15 @@ const Licitacao = {
      * Cria uma nova licitação vinculada ao usuário logado.
      */
     criar: async (dados, administradorId) => {
-        const { numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes } = dados;
+        const { numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, tipo, observacoes } = dados;
         const sql = `
-            INSERT INTO licitacao (administrador_id, numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO licitacao (administrador_id, numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, tipo, observacoes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const valorAbertura = data_abertura && data_abertura.trim() !== '' ? data_abertura : null;
         const valorVigencia = data_vigencia && data_vigencia.trim() !== '' ? data_vigencia : null;
         const valorEstimado = valor_estimado ? parseFloat(valor_estimado) || 0 : 0;
-        const valores = [administradorId, numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', observacoes || null];
+        const valores = [administradorId, numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', tipo || 'Serviços', observacoes || null];
         const [resultado] = await db.query(sql, valores);
         return resultado;
     },
@@ -91,17 +91,17 @@ const Licitacao = {
      * Atualiza uma licitação, verificando pertence ao usuário.
      */
     atualizar: async (id, dados, administradorId) => {
-        const { numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, observacoes } = dados;
+        const { numero_processo, orgao_publico, data_abertura, data_vigencia, valor_estimado, status, tipo, observacoes } = dados;
         const sql = `
             UPDATE licitacao 
             SET numero_processo = ?, orgao_publico = ?, data_abertura = ?, data_vigencia = ?, 
-                valor_estimado = ?, status = ?, observacoes = ?
+                valor_estimado = ?, status = ?, tipo = ?, observacoes = ?
             WHERE id = ? AND administrador_id = ?
         `;
         const valorAbertura = data_abertura && data_abertura.trim() !== '' ? data_abertura : null;
         const valorVigencia = data_vigencia && data_vigencia.trim() !== '' ? data_vigencia : null;
         const valorEstimado = valor_estimado ? parseFloat(valor_estimado) || 0 : 0;
-        const valores = [numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', observacoes || null, id, administradorId];
+        const valores = [numero_processo, orgao_publico, valorAbertura, valorVigencia, valorEstimado, status || 'Ativa', tipo || 'Serviços', observacoes || null, id, administradorId];
         const [resultado] = await db.query(sql, valores);
         return resultado;
     },
