@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 import Layout from '../components/Layout';
@@ -37,6 +37,10 @@ export default function LicitacaoAdicionar() {
   
   // Estado para armazenar os campos com erro
   const [erros, setErros] = useState({ licitacao: false, lotes: [] });
+  
+  // Ref para o input de PDF oculto e estado de carregamento do PDF
+  const fileInputRef = useRef(null);
+  const [processandoPdf, setProcessandoPdf] = useState(false);
 
 
   //toast
@@ -95,6 +99,73 @@ export default function LicitacaoAdicionar() {
   function atualizarCampo(campo, valor) {
     setFormData({ ...formData, [campo]: valor });
     if (campo === 'valor_estimado') setErros({ ...erros, licitacao: false });
+  }
+
+  /**
+   * Envia o PDF para o backend extrair dados usando Inteligência Artificial.
+   */
+  async function handlePdfUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      exibirToast("Por favor, selecione um arquivo PDF.");
+      return;
+    }
+
+    const formDataToSend = new FormData();
+    formDataToSend.append('pdf', file);
+
+    try {
+      setProcessandoPdf(true);
+      exibirToast("Lendo PDF com Inteligência Artificial... Isso pode levar alguns segundos.");
+      
+      const resposta = await api.post('/licitacoes/extrair-pdf', formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const dadosExtraidos = resposta.data;
+
+      // Atualiza os campos gerais da licitação
+      setFormData(prev => ({
+        ...prev,
+        numero_processo: dadosExtraidos.numero_processo || prev.numero_processo,
+        orgao_publico: dadosExtraidos.orgao_publico || prev.orgao_publico,
+        data_abertura: dadosExtraidos.data_abertura || prev.data_abertura,
+        data_vigencia: dadosExtraidos.data_vigencia || prev.data_vigencia,
+        valor_estimado: dadosExtraidos.valor_estimado ? String(dadosExtraidos.valor_estimado) : prev.valor_estimado,
+        observacoes: dadosExtraidos.observacoes || prev.observacoes
+      }));
+
+      // Se a IA encontrou lotes, atualizamos o state
+      if (dadosExtraidos.lotes && dadosExtraidos.lotes.length > 0) {
+        if (lotes.length === 0 || window.confirm("O PDF continha lotes e itens. Deseja substituir os lotes atuais pelos encontrados no PDF?")) {
+            const novosLotes = dadosExtraidos.lotes.map((lote, index) => ({
+               numero_lote: lote.numero_lote || `Lote ${index + 1}`,
+               valor_total_arrematado: lote.valor_total_arrematado ? String(lote.valor_total_arrematado) : '',
+               descricao: lote.descricao || '',
+               itens: (lote.itens || []).map(item => ({
+                  descricao: item.descricao || '',
+                  quantidade_ganha: item.quantidade_ganha ? String(item.quantidade_ganha) : '',
+                  valor_unitario: item.valor_unitario ? String(item.valor_unitario) : ''
+               }))
+            }));
+            setLotes(novosLotes);
+        }
+      }
+
+      exibirToast("PDF processado! Por favor, revise e confirme os dados extraídos.");
+
+    } catch (erro) {
+      console.error("Erro ao processar PDF:", erro);
+      const msg = erro.response?.data?.mensagem || "Erro ao processar o PDF. Verifique se o arquivo está corrompido.";
+      exibirToast(msg);
+    } finally {
+      setProcessandoPdf(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   }
 
   /**
@@ -279,6 +350,30 @@ export default function LicitacaoAdicionar() {
       />
 
       <Card>
+        {/* Seção: Inteligência Artificial */}
+        <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded border border-primary">
+          <div>
+            <h5 className="fw-bold m-0 text-primary">Preenchimento Automático com IA</h5>
+            <p className="text-muted m-0 small">Faça upload do edital em PDF e a Inteligência Artificial preencherá os dados e lotes para você.</p>
+          </div>
+          <div>
+            <input 
+              type="file" 
+              accept="application/pdf" 
+              className="d-none" 
+              ref={fileInputRef} 
+              onChange={handlePdfUpload} 
+            />
+            <button
+              className="btn btn-primary rounded-pill px-4 fw-bold"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={processandoPdf}
+            >
+              {processandoPdf ? "Lendo PDF..." : "Importar PDF do Edital"}
+            </button>
+          </div>
+        </div>
+
         {/* Seção: Dados Gerais */}
         <h4 className="fw-bold mb-4">Dados Gerais</h4>
         <div className="row mb-4">

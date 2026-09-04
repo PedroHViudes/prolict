@@ -8,8 +8,13 @@ const LoteController = require('./controllers/LoteController');
 const ItemController = require('./controllers/ItemController');
 const DocumentoController = require('./controllers/DocumentoController');
 const EntregaController = require('./controllers/EntregaController');
+const PdfExtractController = require('./controllers/PdfExtractController');
 
 const autenticar = require('./middleware/autenticar');
+
+// Configuração do Multer em memória
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 // ============================================================
 // ROTAS PÚBLICAS (não exigem autenticação)
@@ -39,6 +44,7 @@ router.get('/licitacoes/:id/lotes-itens', LicitacaoController.buscarLotesEItens)
 router.get('/licitacoes/:id', LicitacaoController.buscar);
 router.put('/licitacoes/:id', LicitacaoController.atualizar);
 router.delete('/licitacoes/:id', LicitacaoController.excluir);
+router.post('/licitacoes/extrair-pdf', upload.single('pdf'), PdfExtractController.extrair);
 
 // --- ROTAS DE LOTES ---
 router.get('/licitacoes/:licitacaoId/lotes', LoteController.listarPorLicitacao);
