@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaBox, FaCheck, FaArrowLeft } from 'react-icons/fa';
-import Layout from '../components/Layout';
-import Header from '../components/Header';
-import Card from '../components/Card';
+import Layout from '../components/layout/Layout';
+import Header from '../components/layout/Header';
+import Card from '../components/layout/Card';
 import api from '../services/api';
 
 /**

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import Header from '../components/Header';
-import Card from '../components/Card';
+import Layout from '../components/layout/Layout';
+import Header from '../components/layout/Header';
+import Card from '../components/layout/Card';
 import api from '../services/api';
-import Toast from '../components/Toast';
-import ModalConfirmacao from '../components/ModalConfirmacao';
+import Toast from '../components/ui/Toast';
+import ModalConfirmacao from '../components/ui/ModalConfirmacao';
 
 export default function Perfil() {
   // Dados do perfil

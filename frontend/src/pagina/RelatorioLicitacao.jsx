@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaFileCsv } from 'react-icons/fa';
-import Layout from '../components/Layout';
-import Header from '../components/Header';
-import Card from '../components/Card';
+import Layout from '../components/layout/Layout';
+import Header from '../components/layout/Header';
+import Card from '../components/layout/Card';
 import api from '../services/api';
 import '../estilos/Dashboard.css';
-import Toast from '../components/Toast';
+import Toast from '../components/ui/Toast';
 
 
 

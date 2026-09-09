@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import Header from '../components/Header';
-import Card from '../components/Card';
-import Toast from '../components/Toast';
+import Layout from '../components/layout/Layout';
+import Header from '../components/layout/Header';
+import Card from '../components/layout/Card';
+import Toast from '../components/ui/Toast';
 
 /**
  * Página de Configurações do Sistema.

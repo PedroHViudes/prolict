@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaPlus, FaTrash } from 'react-icons/fa';
-import Layout from '../components/Layout';
-import Header from '../components/Header';
-import Card from '../components/Card';
-import Toast from '../components/Toast';
+import Layout from '../components/layout/Layout';
+import Header from '../components/layout/Header';
+import Card from '../components/layout/Card';
+import Toast from '../components/ui/Toast';
+import PdfIAUpload from '../components/licitacoes/PdfIAUpload';
+import LoteCard from '../components/licitacoes/LoteCard';
 import api from '../services/api';
 
 /**
@@ -344,35 +346,12 @@ export default function LicitacaoAdicionar() {
 
   return (
     <Layout>
-      <Header
-        title={ehEdicao ? "Editar Licitação" : "Adicionar Nova Licitação Ganha"}
-        subtitle={ehEdicao ? "Atualize os dados do contrato" : "Preencha os dados do novo contrato e seus itens"}
-      />
-
       <Card>
-        {/* Seção: Inteligência Artificial */}
-        <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded border border-primary">
-          <div>
-            <h5 className="fw-bold m-0 text-primary">Preenchimento Automático com IA</h5>
-            <p className="text-muted m-0 small">Faça upload do edital em PDF e a Inteligência Artificial preencherá os dados e lotes para você.</p>
-          </div>
-          <div>
-            <input 
-              type="file" 
-              accept="application/pdf" 
-              className="d-none" 
-              ref={fileInputRef} 
-              onChange={handlePdfUpload} 
-            />
-            <button
-              className="btn btn-primary rounded-pill px-4 fw-bold"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={processandoPdf}
-            >
-              {processandoPdf ? "Lendo PDF..." : "Importar PDF do Edital"}
-            </button>
-          </div>
-        </div>
+        {/* Seção: Inteligência Artificial Componentizada */}
+        <PdfIAUpload 
+          processandoPdf={processandoPdf} 
+          onPdfUpload={handlePdfUpload} 
+        />
 
         {/* Seção: Dados Gerais */}
         <h4 className="fw-bold mb-4">Dados Gerais</h4>
@@ -481,119 +460,17 @@ export default function LicitacaoAdicionar() {
           </p>
         ) : (
           lotes.map((lote, loteIndice) => (
-            <div key={loteIndice} className="border rounded p-3 mb-4 bg-light">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="fw-bold m-0">Lote {loteIndice + 1}</h5>
-                <button
-                  className="btn btn-sm btn-outline-danger"
-                  onClick={() => removerLote(loteIndice)}
-                >
-                  <FaTrash /> Remover Lote
-                </button>
-              </div>
-
-              <div className="row mb-3">
-                <div className="col-md-4">
-                  <label className="form-label fw-bold small">Nº do Lote</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    value={lote.numero_lote}
-                    onChange={(e) => atualizarLote(loteIndice, 'numero_lote', e.target.value)}
-                  />
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-bold small">Valor Arrematado (R$)</label>
-                  <input
-                    type="number"
-                    className={`form-control form-control-sm ${erros.lotes.includes(loteIndice) ? 'is-invalid border-danger border-2' : ''}`}
-                    value={lote.valor_total_arrematado}
-                    onChange={(e) => atualizarLote(loteIndice, 'valor_total_arrematado', e.target.value)}
-                  />
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-bold small">Descrição</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm"
-                    value={lote.descricao}
-                    onChange={(e) => atualizarLote(loteIndice, 'descricao', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Itens do Lote */}
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="fw-bold small">Itens do Lote</span>
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => adicionarItem(loteIndice)}
-                >
-                  <FaPlus /> Adicionar Item
-                </button>
-              </div>
-
-              <table className="table table-sm align-middle text-center mb-0 p-4">
-                <thead className="table-light">
-                  <tr>
-                    <th className="text-start">Descrição do Item</th>
-                    <th>Quantidade.</th>
-                    <th>Valor Unit. (R$)</th>
-                    <th>Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lote.itens.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="text-muted py-3">
-                        Nenhum item neste lote.
-                      </td>
-                    </tr>
-                  ) : (
-                    lote.itens.map((item, itemIndice) => (
-                      <tr key={itemIndice}>
-                        <td className="text-start">
-                          <input
-                            type="text"
-                            className="form-control form-control-sm"
-                            value={item.descricao}
-                            onChange={(e) => atualizarItem(loteIndice, itemIndice, 'descricao', e.target.value)}
-                            placeholder="Descrição do item"
-                            style={{ margin : '0', width: '100%' }}
-                          />
-                        </td>
-                        <td >
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={item.quantidade_ganha}
-                            onChange={(e) => atualizarItem(loteIndice, itemIndice, 'quantidade_ganha', e.target.value)}
-                            style={{ width: '120px', margin: '0 auto' , textAlign: 'center' }}
-                          />
-                        </td>
-                        <td className="text-center">
-                          <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            value={item.valor_unitario}
-                            onChange={(e) => atualizarItem(loteIndice, itemIndice, 'valor_unitario', e.target.value)}
-                            style={{ width: '120px', margin: '0 auto' , textAlign: 'center' }}
-                          />
-                        </td>
-                        <td>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => removerItem(loteIndice, itemIndice)}
-                          >
-                            <FaTrash />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <LoteCard 
+              key={loteIndice}
+              lote={lote}
+              loteIndice={loteIndice}
+              errosLotes={erros.lotes}
+              onAtualizarLote={atualizarLote}
+              onRemoverLote={removerLote}
+              onAdicionarItem={adicionarItem}
+              onAtualizarItem={atualizarItem}
+              onRemoverItem={removerItem}
+            />
           ))
         )}
 

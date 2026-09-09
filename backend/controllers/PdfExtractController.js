@@ -65,13 +65,31 @@ TEXTO DO EDITAL:
 ${textoBruto.substring(0, 30000)} // Limitando o texto para evitar estourar o limite de tokens, focando na primeira parte que geralmente tem os dados
             `;
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: prompt,
-                config: {
-                    temperature: 0.1 // Temperatura baixa para respostas mais determinísticas e precisas
+            let response;
+            let tentativas = 0;
+            const maxTentativas = 3;
+
+            while (tentativas < maxTentativas) {
+                try {
+                    response = await ai.models.generateContent({
+                        model: 'gemini-3.6-flash',
+                        contents: prompt,
+                        config: {
+                            temperature: 0.1 // Temperatura baixa para respostas mais determinísticas e precisas
+                        }
+                    });
+                    break; // Se deu certo, sai do loop
+                } catch (erroApi) {
+                    if (erroApi.status === 503 && tentativas < maxTentativas - 1) {
+                        tentativas++;
+                        console.log(`Servidor do Gemini ocupado (Erro 503). Tentando novamente em breve... (${tentativas}/${maxTentativas})`);
+                        // Espera 2 segundos antes de tentar de novo
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    } else {
+                        throw erroApi; // Se não for 503 ou estourar as tentativas, lança o erro pra cima
+                    }
                 }
-            });
+            }
 
             // 3. Limpa a resposta para garantir que seja um JSON válido
             let jsonText = response.text;

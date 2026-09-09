@@ -14,13 +14,13 @@ app.use(cors({
 // Middleware para interpretar JSON no corpo das requisições
 app.use(express.json());
 
-const rotas = require('./routes');
+const routes = require('./routes');
 
 // ============================================================
 // ROTAS DA APLICAÇÃO
-// Todas as rotas agora estão centralizadas no arquivo routes.js
+// Todas as rotas agora estão centralizadas na pasta routes/
 // ============================================================
-app.use('/api', rotas);
+app.use('/api', routes);
 
 // ============================================================
 // INICIALIZAÇÃO DO SERVIDOR
