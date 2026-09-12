@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout';
 import Header from '../components/layout/Header';
 import Card from '../components/layout/Card';
 import api from '../services/api';
+import '../estilos/Servicos.css';
 
 /**
  * Página de Serviços Realizados.
@@ -76,8 +77,7 @@ export default function Servicos() {
         />
         <button 
           onClick={() => navigate('/servicos/novo')}
-          className="btn text-white rounded-pill px-4 py-2 fw-bold d-flex align-items-center mt-2 shadow-sm"
-          style={{ backgroundColor: 'var(--prolicit-verde)' }}
+          className="btn text-white rounded-pill px-4 py-2 fw-bold d-flex align-items-center mt-2 shadow-sm bg-prolicit-verde"
         >
           <FaPlus className="me-2" /> Adicionar Serviço
         </button>

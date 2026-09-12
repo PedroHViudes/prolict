@@ -1,23 +1,34 @@
 import React, { useRef } from 'react';
+import '../../estilos/PdfIAUpload.css';
 
+/**
+ * Componente de Upload de Edital em PDF com IA.
+ * Permite selecionar um arquivo PDF e envia para o backend extrair dados e lotes via Gemini.
+ * 
+ * @param {boolean} processandoPdf - Indica se o PDF está sendo processado no momento
+ * @param {Function} onPdfUpload - Callback acionado ao selecionar o arquivo PDF
+ */
 export default function PdfIAUpload({ processandoPdf, onPdfUpload }) {
   const fileInputRef = useRef(null);
 
-  const handleChange = (e) => {
+  function handleChange(e) {
     onPdfUpload(e);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
+  }
+
+  function handleButtonClick() {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }
 
   return (
     <>
       {processandoPdf && (
-        <div 
-          className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', zIndex: 9999 }}
-        >
-          <div className="spinner-border text-light mb-3" style={{ width: '4rem', height: '4rem' }} role="status">
+        <div className="pdf-ia-overlay d-flex flex-column justify-content-center align-items-center">
+          <div className="spinner-border text-light mb-3 pdf-ia-spinner" role="status">
             <span className="visually-hidden">Analisando PDF...</span>
           </div>
           <h3 className="text-white fw-bold">Analisando o Edital com IA...</h3>
@@ -25,9 +36,9 @@ export default function PdfIAUpload({ processandoPdf, onPdfUpload }) {
         </div>
       )}
       
-      <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded border border-primary">
+      <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded pdf-ia-card-header">
         <div>
-          <h5 className="fw-bold m-0 text-primary">Preenchimento Automático com IA</h5>
+          <h5 className="fw-bold m-0 text-prolicit-azul">Preenchimento Automático com IA</h5>
           <p className="text-muted m-0 small">Faça upload do edital em PDF e a Inteligência Artificial preencherá os dados e lotes para você.</p>
         </div>
         <div>
@@ -40,8 +51,8 @@ export default function PdfIAUpload({ processandoPdf, onPdfUpload }) {
           />
           <button
             type="button"
-            className="btn btn-primary rounded-pill px-4 fw-bold"
-            onClick={() => fileInputRef.current?.click()}
+            className="btn rounded-pill px-4 fw-bold bg-prolicit-azul text-white"
+            onClick={handleButtonClick}
             disabled={processandoPdf}
           >
             {processandoPdf ? "Lendo PDF..." : "Importar PDF do Edital"}
@@ -51,3 +62,4 @@ export default function PdfIAUpload({ processandoPdf, onPdfUpload }) {
     </>
   );
 }
+

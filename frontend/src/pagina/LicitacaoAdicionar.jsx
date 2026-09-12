@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import Layout from '../components/layout/Layout';
-import Header from '../components/layout/Header';
 import Card from '../components/layout/Card';
 import Toast from '../components/ui/Toast';
 import PdfIAUpload from '../components/licitacoes/PdfIAUpload';
 import LoteCard from '../components/licitacoes/LoteCard';
 import api from '../services/api';
+import '../estilos/Licitacoes.css';
 
 /**
  * Página para adicionar ou editar uma Licitação.
@@ -41,16 +41,15 @@ export default function LicitacaoAdicionar() {
   const [erros, setErros] = useState({ licitacao: false, lotes: [] });
   
   // Ref para o input de PDF oculto e estado de carregamento do PDF
-  const fileInputRef = useRef(null);
   const [processandoPdf, setProcessandoPdf] = useState(false);
 
 
   //toast
-  const [toast, setToast] = useState({ visivel: false, mensagem: '' });
+  const [toastState, setToastState] = useState({ visivel: false, mensagem: '' });
 
   function exibirToast(mensagem) {
-    setToast({ visivel: true, mensagem });
-    setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
+    setToastState({ visivel: true, mensagem });
+    setTimeout(() => setToastState({ visivel: false, mensagem: '' }), 3500);
   }
 
 
@@ -128,15 +127,15 @@ export default function LicitacaoAdicionar() {
 
       const dadosExtraidos = resposta.data;
 
-      // Atualiza os campos gerais da licitação
+      // Atualiza os campos gerais da licitação com fallbacks
       setFormData(prev => ({
         ...prev,
-        numero_processo: dadosExtraidos.numero_processo || prev.numero_processo,
-        orgao_publico: dadosExtraidos.orgao_publico || prev.orgao_publico,
-        data_abertura: dadosExtraidos.data_abertura || prev.data_abertura,
-        data_vigencia: dadosExtraidos.data_vigencia || prev.data_vigencia,
-        valor_estimado: dadosExtraidos.valor_estimado ? String(dadosExtraidos.valor_estimado) : prev.valor_estimado,
-        observacoes: dadosExtraidos.observacoes || prev.observacoes
+        numero_processo: dadosExtraidos.numero_processo || dadosExtraidos.processo || prev.numero_processo,
+        orgao_publico: dadosExtraidos.orgao_publico || dadosExtraidos.orgao || dadosExtraidos.cliente || prev.orgao_publico,
+        data_abertura: dadosExtraidos.data_abertura || dadosExtraidos.data_inicio || prev.data_abertura,
+        data_vigencia: dadosExtraidos.data_vigencia || dadosExtraidos.data_fim || prev.data_vigencia,
+        valor_estimado: dadosExtraidos.valor_estimado ? String(dadosExtraidos.valor_estimado) : (dadosExtraidos.valor ? String(dadosExtraidos.valor) : prev.valor_estimado),
+        observacoes: dadosExtraidos.observacoes || dadosExtraidos.resumo || prev.observacoes
       }));
 
       // Se a IA encontrou lotes, atualizamos o state
@@ -164,9 +163,6 @@ export default function LicitacaoAdicionar() {
       exibirToast(msg);
     } finally {
       setProcessandoPdf(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   }
 
@@ -446,8 +442,7 @@ export default function LicitacaoAdicionar() {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold m-0">Lotes e Itens</h4>
           <button
-            className="btn text-white rounded-pill px-4 fw-bold"
-            style={{ backgroundColor: 'var(--prolicit-azul)' }}
+            className="btn text-white rounded-pill px-4 fw-bold bg-prolicit-azul"
             onClick={adicionarLote}
           >
             <FaPlus className="me-2" /> Adicionar Lote
@@ -477,8 +472,7 @@ export default function LicitacaoAdicionar() {
         {/* Botões de Ação */}
         <div className="d-flex gap-3 mt-4">
           <button
-            className="btn text-white px-5 py-2 fw-bold rounded-3"
-            style={{ backgroundColor: 'var(--prolicit-verde)' }}
+            className="btn text-white px-5 py-2 fw-bold rounded-3 bg-prolicit-verde"
             onClick={salvarLicitacao}
             disabled={salvando}
           >
@@ -486,8 +480,7 @@ export default function LicitacaoAdicionar() {
           </button>
           <button
             type="button"
-            className="btn text-white px-5 py-2 fw-bold rounded-3"
-            style={{ backgroundColor: '#4a5568' }}
+            className="btn text-white px-5 py-2 fw-bold rounded-3 bg-cinza-escuro"
             onClick={() => navigate('/licitacoes')}
           >
             Cancelar
@@ -495,9 +488,9 @@ export default function LicitacaoAdicionar() {
         </div>
       </Card>
       {/* Renderização do Toast Global */}
-      {toast.visivel && (
+      {toastState.visivel && (
         <Toast>
-          {toast.mensagem}
+          {toastState.mensagem}
         </Toast>
       )}
 

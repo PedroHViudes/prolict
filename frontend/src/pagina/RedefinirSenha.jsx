@@ -1,14 +1,73 @@
 
-import React from "react";
-import { Container, Row, Col, Form, Button, Card, InputGroup } from 'react-bootstrap';
-import { LuLock } from "react-icons/lu";
+import React, { useState } from "react";
+import { Container, Row, Col, Form, Button, Card, InputGroup, Alert } from 'react-bootstrap';
+import { LuLock, LuMail, LuKey } from "react-icons/lu";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "../estilos/RedefinirSenha.css";
-
+import api from "../services/api";
 
 import Logo_Doc from "../assets/documento.png"; 
-import Logo_Escrita from  "../assets/escrtita.png"; // Use a logo que preferir
+import Logo_Escrita from  "../assets/escrtita.png"; 
 
+/**
+ * Página de Redefinição de Senha com PIN.
+ * Valida o código de 6 dígitos recebido por e-mail e permite cadastrar uma nova senha de acesso.
+ */
 export default function RedefinirSenha() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState(searchParams.get("email") || "");
+  const [codigoPIN, setCodigoPIN] = useState(searchParams.get("token") || "");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmaSenha, setConfirmaSenha] = useState("");
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  const handleRedefinir = async (e) => {
+    e.preventDefault();
+    setErro("");
+    setMensagemSucesso("");
+
+    if (!codigoPIN || codigoPIN.trim().length === 0) {
+      setErro("Por favor, digite o código de 6 dígitos enviado para seu e-mail.");
+      return;
+    }
+
+    if (!novaSenha || !confirmaSenha) {
+      setErro("Por favor, preencha todos os campos de senha.");
+      return;
+    }
+
+    if (novaSenha !== confirmaSenha) {
+      setErro("A nova senha e a confirmação não conferem.");
+      return;
+    }
+
+    try {
+      setCarregando(true);
+      const resposta = await api.post("/redefinir-senha", { 
+        email, 
+        codigoPIN: codigoPIN.trim(), 
+        novaSenha 
+      });
+
+      setMensagemSucesso(resposta.data.mensagem || "Senha redefinida com sucesso!");
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 2500);
+
+    } catch (err) {
+      console.error("Erro ao redefinir senha:", err);
+      const msg = err.response?.data?.mensagem || "Erro ao redefinir a senha. Verifique o código e tente novamente.";
+      setErro(msg);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   return (
    <div className="pagina-fundo">
       <Container>
@@ -27,29 +86,76 @@ export default function RedefinirSenha() {
 
                     {/* Lado Direito: Formulário */}
                     <Col md={6} className=" ps-5 py-3">
-                      <Form>
-                        <Form.Group className="mb-4">
+                      <h4 className="fw-bold mb-3 text-dark">Redefinir Senha</h4>
+
+                      {erro && <Alert variant="danger" className="text-center p-2 small">{erro}</Alert>}
+                      {mensagemSucesso && (
+                        <Alert variant="success" className="text-center p-2 small">
+                          {mensagemSucesso} <br /> Redirecionando para o login...
+                        </Alert>
+                      )}
+
+                      <Form onSubmit={handleRedefinir}>
+                        <Form.Group className="mb-3">
+                          <Form.Label className="label-campo">E-mail Cadastrado</Form.Label>
+                          <InputGroup className="grupo-input">
+                            <InputGroup.Text><LuMail /></InputGroup.Text>
+                            <Form.Control 
+                              type="email" 
+                              placeholder="Seu e-mail" 
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                            />
+                          </InputGroup>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                          <Form.Label className="label-campo">Código de 6 Dígitos (do e-mail)</Form.Label>
+                          <InputGroup className="grupo-input">
+                            <InputGroup.Text><LuKey /></InputGroup.Text>
+                            <Form.Control 
+                              type="text" 
+                              maxLength={6}
+                              placeholder="Ex: 482910" 
+                              value={codigoPIN}
+                              onChange={(e) => setCodigoPIN(e.target.value)}
+                              className="fw-bold text-primary tracking-widest"
+                            />
+                          </InputGroup>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
                           <Form.Label className="label-campo">Nova Senha</Form.Label>
                           <InputGroup className="grupo-input">
                             <InputGroup.Text><LuLock /></InputGroup.Text>
-                            <Form.Control type="password" placeholder="Digite sua nova senha" />
+                            <Form.Control 
+                              type="password" 
+                              placeholder="Digite sua nova senha" 
+                              value={novaSenha}
+                              onChange={(e) => setNovaSenha(e.target.value)}
+                            />
                           </InputGroup>
                         </Form.Group>
 
                         <Form.Group className="mb-4">
-                          <Form.Label className="label-campo">Confirme a Senha</Form.Label>
+                          <Form.Label className="label-campo">Confirme a Nova Senha</Form.Label>
                           <InputGroup className="grupo-input">
                             <InputGroup.Text><LuLock /></InputGroup.Text>
-                            <Form.Control type="password" placeholder="Confirme a senha" />
+                            <Form.Control 
+                              type="password" 
+                              placeholder="Confirme a senha" 
+                              value={confirmaSenha}
+                              onChange={(e) => setConfirmaSenha(e.target.value)}
+                            />
                           </InputGroup>
                         </Form.Group>
 
-                        <div className="d-flex justify-content-between align-items-center mt-5">
-                          <p className="texto-suporte ">
-                            Em caso de dúvidas ou problemas com o acesso, entre em contato com o suporte
-                          </p>
-                          <Button className="btn-sm btn-acao ">
-                            TROCAR SENHA
+                        <div className="d-flex justify-content-between align-items-center mt-4">
+                          <Link to="/" className="text-decoration-none small text-muted">
+                            Voltar ao login
+                          </Link>
+                          <Button type="submit" className="btn-sm btn-acao px-4" disabled={carregando}>
+                            {carregando ? "Processando..." : "TROCAR SENHA"}
                           </Button>
                         </div>
                       </Form>

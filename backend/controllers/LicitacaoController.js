@@ -9,6 +9,9 @@ const Lote = require('../models/Lote');
  */
 const LicitacaoController = {
 
+    /**
+     * Retorna a lista de todas as licitações cadastradas pelo usuário logado.
+     */
     listar: async (req, res) => {
         try {
             const licitacoes = await Licitacao.buscarTodas(req.usuario.id);
@@ -19,6 +22,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Retorna apenas as licitações ativas do usuário com o saldo disponível calculado.
+     */
     listarAtivas: async (req, res) => {
         try {
             const licitacoes = await Licitacao.buscarAtivas(req.usuario.id);
@@ -29,6 +35,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Busca os detalhes de uma licitação específica pelo ID.
+     */
     buscar: async (req, res) => {
         const { id } = req.params;
         try {
@@ -43,6 +52,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Cadastra uma nova licitação no sistema para o usuário logado.
+     */
     adicionar: async (req, res) => {
         try {
             const dados = req.body;
@@ -66,6 +78,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Atualiza os dados de uma licitação existente no banco.
+     */
     atualizar: async (req, res) => {
         const { id } = req.params;
         const dados = req.body;
@@ -83,7 +98,7 @@ const LicitacaoController = {
             if (dados.valor_estimado) {
                 dados.valor_estimado = parseFloat(dados.valor_estimado) || 0;
                 
-                // Validação MVC: O novo valor estimado não pode ser menor que a soma dos lotes já cadastrados
+                // Validação de Limites: O novo valor estimado não pode ser menor que a soma dos lotes cadastrados
                 const somaAtualLotes = await Lote.somarLotesLicitacao(id);
                 if (dados.valor_estimado < somaAtualLotes) {
                     return res.status(400).json({ mensagem: `O novo valor estimado não pode ser menor que a soma dos lotes cadastrados (R$ ${somaAtualLotes.toFixed(2)}).` });
@@ -98,6 +113,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Remove uma licitação e todos os seus lotes e itens associados.
+     */
     excluir: async (req, res) => {
         const { id } = req.params;
 
@@ -115,6 +133,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Retorna contagens de licitações e somatório de valores para o Dashboard.
+     */
     resumoDashboard: async (req, res) => {
         try {
             const contagem = await Licitacao.contarPorStatus(req.usuario.id);
@@ -126,6 +147,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Retorna os dados de uma licitação específica juntamente com o cálculo de seu saldo.
+     */
     buscarComSaldo: async (req, res) => {
         const { id } = req.params;
         try {
@@ -140,6 +164,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Retorna a árvore hierárquica completa de lotes e itens de uma licitação.
+     */
     buscarLotesEItens: async (req, res) => {
         const { id } = req.params;
         try {
@@ -170,6 +197,9 @@ const LicitacaoController = {
         }
     },
 
+    /**
+     * Retorna o resumo geral financeiro e operacional de todas as licitações para relatórios.
+     */
     resumoGeral: async (req, res) => {
         try {
             const licitacoes = await Licitacao.buscarResumoGeral(req.usuario.id);

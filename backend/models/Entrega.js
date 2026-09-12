@@ -6,12 +6,22 @@ const db = require('../db');
  */
 const Entrega = {
 
+    /**
+     * Busca entregas vinculadas a um serviço específico.
+     * @param {number} servicoId - ID do serviço
+     * @returns {Array} Lista de entregas cadastradas
+     */
     buscarPorServico: async (servicoId) => {
         const sql = "SELECT * FROM entrega WHERE servico_id = ? ORDER BY data_recebimento DESC";
         const [linhas] = await db.query(sql, [servicoId]);
         return linhas;
     },
 
+    /**
+     * Busca uma entrega pelo seu ID.
+     * @param {number} id - ID da entrega
+     * @returns {Object|undefined} Dados da entrega
+     */
     buscarPorId: async (id) => {
         const sql = "SELECT * FROM entrega WHERE id = ?";
         const [linhas] = await db.query(sql, [id]);
@@ -19,7 +29,10 @@ const Entrega = {
     },
 
     /**
-     * Busca entrega pelo ID com verificação de dono via servico→item→lote→licitação.
+     * Busca entrega pelo ID verificando proprietário via serviço.
+     * @param {number} id - ID da entrega
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Object|undefined} Dados da entrega se pertencer ao usuário
      */
     buscarPorIdComDono: async (id, administradorId) => {
         const sql = `
@@ -32,7 +45,10 @@ const Entrega = {
     },
 
     /**
-     * Verifica se um serviço pertence ao usuário.
+     * Verifica se um serviço pertence ao usuário logado.
+     * @param {number} servicoId - ID do serviço
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Object|undefined} Dados do serviço se for proprietário
      */
     verificarServicoDono: async (servicoId, administradorId) => {
         const sql = "SELECT id FROM servico WHERE id = ? AND administrador_id = ?";
@@ -40,6 +56,11 @@ const Entrega = {
         return linhas[0];
     },
 
+    /**
+     * Busca todas as entregas registradas pelo usuário logado.
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Array} Lista completa de entregas com dados do serviço e da licitação
+     */
     buscarTodas: async (administradorId) => {
         const sql = `
             SELECT e.*, s.nome_servico, s.valor_fixo,
@@ -57,6 +78,11 @@ const Entrega = {
         return linhas;
     },
 
+    /**
+     * Cadastra um novo comprovante de entrega / recebimento.
+     * @param {Object} dados - Dados da entrega (quem_recebeu, telefone, responsavel_entrega, data_recebimento, observacoes)
+     * @returns {Object} Resultado da inserção no banco de dados
+     */
     criar: async (dados) => {
         const { servico_id, quem_recebeu, telefone, responsavel_entrega, data_recebimento, observacoes } = dados;
         const sql = `
@@ -75,6 +101,12 @@ const Entrega = {
         return resultado;
     },
 
+    /**
+     * Atualiza os dados de uma entrega cadastrada.
+     * @param {number} id - ID da entrega
+     * @param {Object} dados - Novos dados da entrega
+     * @returns {Object} Resultado da atualização
+     */
     atualizar: async (id, dados) => {
         const { quem_recebeu, telefone, responsavel_entrega, data_recebimento, observacoes } = dados;
         const sql = `
@@ -95,6 +127,11 @@ const Entrega = {
         return resultado;
     },
 
+    /**
+     * Exclui um registro de entrega do banco de dados.
+     * @param {number} id - ID da entrega
+     * @returns {Object} Resultado da exclusão
+     */
     excluir: async (id) => {
         const sql = "DELETE FROM entrega WHERE id = ?";
         const [resultado] = await db.query(sql, [id]);

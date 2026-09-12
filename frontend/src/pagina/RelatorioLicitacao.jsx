@@ -5,6 +5,7 @@ import Header from '../components/layout/Header';
 import Card from '../components/layout/Card';
 import api from '../services/api';
 import '../estilos/Dashboard.css';
+import '../estilos/Relatorios.css';
 import Toast from '../components/ui/Toast';
 
 
@@ -183,8 +184,7 @@ export default function RelatorioLicitacao() {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold m-0">Licitações com Saldo</h4>
           <button
-            className="btn btn-sm text-white rounded-pill px-3"
-            style={{ backgroundColor: 'var(--prolicit-verde)' }}
+            className="btn btn-sm text-white rounded-pill px-3 bg-prolicit-verde"
             onClick={exportarLicitacoesCSV}
           >
             <FaFileCsv className="me-1" /> Exportar CSV
@@ -265,7 +265,7 @@ export default function RelatorioLicitacao() {
                     <td>{formatarMoeda(lic.valor_estimado)}</td>
                     <td>{formatarMoeda(lic.valor_executado)}</td>
                     <td>
-                      <strong style={{ color: parseFloat(lic.saldo || 0) > 0 ? '#ff6600' : 'var(--prolicit-verde)' }}>
+                      <strong className={parseFloat(lic.saldo || 0) > 0 ? 'text-prolicit-laranja' : 'text-prolicit-verde'}>
                         {formatarMoeda(lic.saldo)}
                       </strong>
                     </td>

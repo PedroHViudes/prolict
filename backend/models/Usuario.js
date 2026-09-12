@@ -9,33 +9,30 @@ const Usuario = {
 
     /**
      * Busca um administrador pelo seu endereço de e-mail.
-     * Utilizado no login para verificar se a conta existe.
      * @param {string} email - E-mail do administrador
      * @returns {Object|undefined} Dados do administrador ou undefined se não encontrado
      */
-    buscarPorEmail: async (email) => {
+    async buscarPorEmail(email) {
         const [linhas] = await db.query('SELECT * FROM administrador WHERE email = ?', [email]);
         return linhas[0];
     },
 
     /**
      * Busca um administrador pelo seu ID.
-     * Utilizado para carregar dados do perfil e no middleware de autenticação.
      * @param {number} id - ID do administrador
      * @returns {Object|undefined} Dados do administrador ou undefined se não encontrado
      */
-    buscarPorId: async (id) => {
+    async buscarPorId(id) {
         const [linhas] = await db.query('SELECT id, nome, email, criado_em FROM administrador WHERE id = ?', [id]);
         return linhas[0];
     },
 
     /**
      * Cria um novo administrador no banco de dados.
-     * A senha deve ser criptografada com bcrypt antes de ser enviada.
      * @param {Object} dados - Objeto com nome, email e senha (já criptografada)
      * @returns {Object} Resultado da inserção no banco
      */
-    criar: async (dados) => {
+    async criar(dados) {
         const { nome, email, senha } = dados;
         const sql = "INSERT INTO administrador (nome, email, senha) VALUES (?, ?, ?)";
         const valores = [nome, email, senha];
@@ -44,12 +41,11 @@ const Usuario = {
 
     /**
      * Atualiza os dados do administrador (nome e e-mail).
-     * A senha não é alterada por esta função.
      * @param {number} id - ID do administrador
      * @param {Object} dados - Objeto com nome e email
      * @returns {Object} Resultado da atualização
      */
-    atualizar: async (id, dados) => {
+    async atualizar(id, dados) {
         const { nome, email } = dados;
         const sql = "UPDATE administrador SET nome = ?, email = ? WHERE id = ?";
         return await db.query(sql, [nome, email, id]);
@@ -57,14 +53,56 @@ const Usuario = {
 
     /**
      * Atualiza a senha do administrador.
-     * A nova senha deve ser criptografada com bcrypt antes de ser enviada.
      * @param {number} id - ID do administrador
      * @param {string} novaSenha - Nova senha já criptografada
      * @returns {Object} Resultado da atualização
      */
-    atualizarSenha: async (id, novaSenha) => {
+    async atualizarSenha(id, novaSenha) {
         const sql = "UPDATE administrador SET senha = ? WHERE id = ?";
         return await db.query(sql, [novaSenha, id]);
+    },
+
+    /**
+     * Salva o token de redefinição de senha e sua data de expiração.
+     * @param {number} id - ID do administrador
+     * @param {string} token - Token gerado para redefinição
+     * @param {Date} dataExpiracao - Data e hora limite de validade do token
+     */
+    async salvarTokenReset(id, token, dataExpiracao) {
+        const sql = "UPDATE administrador SET reset_token = ?, reset_token_expires = ? WHERE id = ?";
+        return await db.query(sql, [token, dataExpiracao, id]);
+    },
+
+    /**
+     * Busca um administrador pelo token de redefinição de senha válido (não expirado).
+     * @param {string} token - Token enviado no link de recuperação
+     * @returns {Object|undefined} Administrador correspondente ou undefined
+     */
+    async buscarPorTokenReset(token) {
+        const sql = "SELECT * FROM administrador WHERE reset_token = ? AND reset_token_expires > NOW()";
+        const [linhas] = await db.query(sql, [token]);
+        return linhas[0];
+    },
+
+    /**
+     * Busca um administrador pelo e-mail e pelo código PIN de 6 dígitos não expirado.
+     * @param {string} email - E-mail do administrador
+     * @param {string} codigoPIN - Código PIN enviado por e-mail
+     * @returns {Object|undefined} Administrador correspondente ou undefined
+     */
+    async buscarPorEmailETokenReset(email, codigoPIN) {
+        const sql = "SELECT * FROM administrador WHERE email = ? AND reset_token = ? AND reset_token_expires > NOW()";
+        const [linhas] = await db.query(sql, [email, codigoPIN]);
+        return linhas[0];
+    },
+
+    /**
+     * Limpa o token de redefinição de senha após o uso ou expiração.
+     * @param {number} id - ID do administrador
+     */
+    async limparTokenReset(id) {
+        const sql = "UPDATE administrador SET reset_token = NULL, reset_token_expires = NULL WHERE id = ?";
+        return await db.query(sql, [id]);
     },
 
     /**
@@ -72,7 +110,7 @@ const Usuario = {
      * @param {number} id - ID do administrador
      * @returns {Object} Resultado da exclusão
      */
-    excluir: async (id) => {
+    async excluir(id) {
         const sql = "DELETE FROM administrador WHERE id = ?";
         return await db.query(sql, [id]);
     }

@@ -1,5 +1,5 @@
 -- ============================================================
--- SCRIPT DE CRIAÇÃO DO BANCO DE DADOS - PROLICIT
+-- SCRIPT OFICIAL DE CRIAÇÃO DO BANCO DE DADOS - PROLICIT
 -- Banco: prolicit
 -- Conexão: localhost, root, sem senha
 -- ============================================================
@@ -7,57 +7,68 @@
 CREATE DATABASE IF NOT EXISTS prolicit;
 USE prolicit;
 
+-- Desabilita checagem de chaves estrangeiras para permitir recriação limpa
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS entrega;
+DROP TABLE IF EXISTS documento;
+DROP TABLE IF EXISTS servico;
+DROP TABLE IF EXISTS item;
+DROP TABLE IF EXISTS lote;
+DROP TABLE IF EXISTS licitacao;
+DROP TABLE IF EXISTS administrador;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ============================================================
--- TABELA: administrador
+-- 1. TABELA: administrador
 -- Armazena os dados de acesso do responsável pela empresa.
--- Sistema single-user: apenas um acesso por empresa.
 -- ============================================================
 CREATE TABLE administrador (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
+    reset_token VARCHAR(255) NULL,
+    reset_token_expires DATETIME NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ============================================================
--- TABELA: licitacao
--- Dados gerais do edital de licitação já ganha.
--- Status: Ativa (em andamento) ou Finalizada (concluída).
+-- 2. TABELA: licitacao
+-- Dados gerais do contrato ganho pela empresa.
 -- ============================================================
 CREATE TABLE licitacao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     administrador_id INT NOT NULL,
     numero_processo VARCHAR(50) NOT NULL,
     orgao_publico VARCHAR(150) NOT NULL,
-    data_abertura DATE,
-    data_vigencia DATE,
-    valor_estimado DECIMAL(12,2),
+    data_abertura DATE NULL,
+    data_vigencia DATE NULL,
+    valor_estimado DECIMAL(12,2) DEFAULT 0,
     status ENUM('Ativa', 'Finalizada') DEFAULT 'Ativa',
     tipo ENUM('Serviços', 'Equipamentos', 'Ambos') DEFAULT 'Serviços',
-    observacoes TEXT,
+    observacoes TEXT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (administrador_id) REFERENCES administrador(id) ON DELETE CASCADE
 );
 
 -- ============================================================
--- TABELA: lote
--- Divide a licitação em partes financeiras.
--- Cada lote guarda o valor arrematado e seus itens.
+-- 3. TABELA: lote
+-- Divisão financeira e estrutural da licitação.
 -- ============================================================
 CREATE TABLE lote (
     id INT AUTO_INCREMENT PRIMARY KEY,
     licitacao_id INT NOT NULL,
-    numero_lote VARCHAR(50),
+    numero_lote VARCHAR(50) NULL,
     valor_total_arrematado DECIMAL(12,2) DEFAULT 0,
-    descricao VARCHAR(200),
+    descricao VARCHAR(200) NULL,
     FOREIGN KEY (licitacao_id) REFERENCES licitacao(id) ON DELETE CASCADE
 );
 
 -- ============================================================
--- TABELA: item
--- Controle de quantidade e saldo de cada item dentro de um lote.
--- saldo_disponivel = quantidade_ganha - quantidade_executada
+-- 4. TABELA: item
+-- Produtos ou serviços específicos dentro de um lote.
 -- ============================================================
 CREATE TABLE item (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -70,9 +81,8 @@ CREATE TABLE item (
 );
 
 -- ============================================================
--- TABELA: servico
--- Registra cada execução técnica (baixa operacional).
--- Vincula o serviço a um item específico, registrando a "baixa".
+-- 5. TABELA: servico
+-- Registro da execução ou baixa operacional de um item.
 -- ============================================================
 CREATE TABLE servico (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -81,56 +91,47 @@ CREATE TABLE servico (
     nome_servico VARCHAR(150) NOT NULL,
     valor_fixo DECIMAL(10,2) DEFAULT 0,
     quantidade INT DEFAULT 0,
-    data_execucao DATE,
-    descricao_detalhada TEXT,
+    data_execucao DATE NULL,
+    descricao_detalhada TEXT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (item_id) REFERENCES item(id) ON DELETE CASCADE,
-    FOREIGN KEY (administrador_id) REFERENCES administrador(id)
+    FOREIGN KEY (administrador_id) REFERENCES administrador(id) ON DELETE CASCADE
 );
 
 -- ============================================================
--- TABELA: documento
--- Armazena metadados de orçamentos e certidões.
--- data_vencimento permite alertas de prazo de validade.
--- ============================================================
-CREATE TABLE documento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    licitacao_id INT NOT NULL,
-    nome VARCHAR(150) NOT NULL,
-    tipo VARCHAR(50),
-    arquivo_path VARCHAR(255),
-    data_vencimento DATE,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (licitacao_id) REFERENCES licitacao(id) ON DELETE CASCADE
-);
-
--- ============================================================
--- TABELA: entrega
--- Registra quem recebeu o serviço e o responsável pela entrega.
--- Tabela separada para permitir múltiplos recebimentos por serviço.
+-- 6. TABELA: entrega
+-- Comprovante de quem recebeu e quem entregou o serviço/produto.
 -- ============================================================
 CREATE TABLE entrega (
     id INT AUTO_INCREMENT PRIMARY KEY,
     servico_id INT NOT NULL,
-    quem_recebeu VARCHAR(150),
-    telefone VARCHAR(20),
-    responsavel_entrega VARCHAR(150),
-    data_recebimento DATE,
-    observacoes TEXT,
+    quem_recebeu VARCHAR(150) NULL,
+    telefone VARCHAR(20) NULL,
+    responsavel_entrega VARCHAR(150) NULL,
+    data_recebimento DATE NULL,
+    observacoes TEXT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (servico_id) REFERENCES servico(id) ON DELETE CASCADE
 );
 
 -- ============================================================
--- DADOS INICIAIS (usuário padrão para teste)
+-- 7. TABELA: documento
+-- Arquivos, certidões e orçamentos vinculados à licitação.
 -- ============================================================
-INSERT INTO administrador (nome, email, senha) VALUES
-('Administrador', 'admin@prolicit.com', '$2b$10$placeholder_hash');
+CREATE TABLE documento (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    licitacao_id INT NOT NULL,
+    nome VARCHAR(150) NOT NULL,
+    tipo VARCHAR(50) NULL,
+    arquivo_path VARCHAR(255) NULL,
+    data_vencimento DATE NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (licitacao_id) REFERENCES licitacao(id) ON DELETE CASCADE
+);
 
 -- ============================================================
--- CORREÇÕES PARA BANCOS EXISTENTES:
--- ALTER TABLE licitacao MODIFY COLUMN data_abertura DATE;
--- ALTER TABLE licitacao ADD COLUMN administrador_id INT NOT NULL AFTER id;
--- ALTER TABLE licitacao ADD FOREIGN KEY (administrador_id) REFERENCES administrador(id) ON DELETE CASCADE;
--- UPDATE licitacao SET administrador_id = 1 WHERE administrador_id IS NULL;
+-- DADOS INICIAIS DE TESTE (Opcional)
+-- Usuário padrão de teste: admin@prolicit.com / Senha: 123
 -- ============================================================
+INSERT INTO administrador (nome, email, senha) VALUES
+('Administrador Prolicit', 'admin@prolicit.com', '$2b$10$ot6oaSR6LCs6AiLivhDR4uMIuSC78JGZkBG91UwjNEITWcmv8DiYi');

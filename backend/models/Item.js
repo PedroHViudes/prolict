@@ -7,6 +7,11 @@ const db = require('../db');
  */
 const Item = {
 
+    /**
+     * Busca todos os itens pertencentes a um lote específico.
+     * @param {number} loteId - ID do lote pai
+     * @returns {Array} Lista de itens cadastrados
+     */
     buscarPorLote: async (loteId) => {
         const sql = "SELECT * FROM item WHERE lote_id = ? ORDER BY id";
         const [linhas] = await db.query(sql, [loteId]);
@@ -15,8 +20,10 @@ const Item = {
 
     /**
      * Soma o valor total financeiro (quantidade * valor_unitario) de todos os itens de um lote,
-     * exceto o ignorado (usado em updates).
-     * Usado para validação MVC.
+     * exceto o ignorado (usado em edições).
+     * @param {number} loteId - ID do lote
+     * @param {number|null} ignorarItemId - ID do item a ser desconsiderado (edição)
+     * @returns {number} Soma financeira dos itens do lote
      */
     somarItensLote: async (loteId, ignorarItemId = null) => {
         let sql = "SELECT COALESCE(SUM(quantidade_ganha * valor_unitario), 0) as total FROM item WHERE lote_id = ?";
@@ -29,6 +36,11 @@ const Item = {
         return parseFloat(linhas[0].total);
     },
 
+    /**
+     * Busca um item pelo seu ID com detalhes do lote e da licitação.
+     * @param {number} id - ID do item
+     * @returns {Object|undefined} Dados do item
+     */
     buscarPorId: async (id) => {
         const sql = `
             SELECT i.*, l.numero_lote, l.valor_total_arrematado,
@@ -43,7 +55,10 @@ const Item = {
     },
 
     /**
-     * Busca item pelo ID com verificação de dono via lote→licitação.
+     * Busca um item pelo ID verificando o proprietário através do lote e da licitação.
+     * @param {number} id - ID do item
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Object|undefined} Item se pertencer ao usuário
      */
     buscarPorIdComDono: async (id, administradorId) => {
         const sql = `
@@ -56,6 +71,11 @@ const Item = {
         return linhas[0];
     },
 
+    /**
+     * Busca todos os itens de uma licitação com cálculo do saldo disponível de cada um.
+     * @param {number} licitacaoId - ID da licitação
+     * @returns {Array} Lista de itens com saldo calculado
+     */
     buscarPorLicitacao: async (licitacaoId) => {
         const sql = `
             SELECT i.*, lo.numero_lote, lo.descricao as lote_descricao, lo.valor_total_arrematado,
@@ -71,6 +91,11 @@ const Item = {
         return linhas;
     },
 
+    /**
+     * Busca todos os itens pertencentes ao usuário logado.
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Array} Lista completa de itens do usuário
+     */
     buscarTodos: async (administradorId) => {
         const sql = `
             SELECT i.*, l.numero_lote, l.valor_total_arrematado,
@@ -85,6 +110,11 @@ const Item = {
         return linhas;
     },
 
+    /**
+     * Cadastra um novo item no lote.
+     * @param {Object} dados - Objeto contendo lote_id, descricao, quantidade_ganha e valor_unitario
+     * @returns {Object} Resultado da inserção no banco de dados
+     */
     criar: async (dados) => {
         const { lote_id, descricao, quantidade_ganha, valor_unitario } = dados;
         const sql = `
@@ -96,6 +126,12 @@ const Item = {
         return resultado;
     },
 
+    /**
+     * Atualiza os dados de um item existente.
+     * @param {number} id - ID do item a ser atualizado
+     * @param {Object} dados - Objeto contendo descricao, quantidade_ganha e valor_unitario
+     * @returns {Object} Resultado da atualização
+     */
     atualizar: async (id, dados) => {
         const { descricao, quantidade_ganha, valor_unitario } = dados;
         const sql = "UPDATE item SET descricao = ?, quantidade_ganha = ?, valor_unitario = ? WHERE id = ?";
@@ -104,6 +140,11 @@ const Item = {
         return resultado;
     },
 
+    /**
+     * Exclui um item do banco de dados.
+     * @param {number} id - ID do item a ser excluído
+     * @returns {Object} Resultado da exclusão
+     */
     excluir: async (id) => {
         const sql = "DELETE FROM item WHERE id = ?";
         const [resultado] = await db.query(sql, [id]);

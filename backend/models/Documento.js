@@ -6,12 +6,22 @@ const db = require('../db');
  */
 const Documento = {
 
+    /**
+     * Busca todos os documentos vinculados a uma licitação.
+     * @param {number} licitacaoId - ID da licitação
+     * @returns {Array} Lista de documentos anexados
+     */
     buscarPorLicitacao: async (licitacaoId) => {
         const sql = "SELECT * FROM documento WHERE licitacao_id = ? ORDER BY criado_em DESC";
         const [linhas] = await db.query(sql, [licitacaoId]);
         return linhas;
     },
 
+    /**
+     * Busca um documento pelo seu ID.
+     * @param {number} id - ID do documento
+     * @returns {Object|undefined} Dados do documento
+     */
     buscarPorId: async (id) => {
         const sql = "SELECT * FROM documento WHERE id = ?";
         const [linhas] = await db.query(sql, [id]);
@@ -19,7 +29,10 @@ const Documento = {
     },
 
     /**
-     * Busca documento pelo ID com verificação de dono via licitação.
+     * Busca documento pelo ID verificando proprietário via licitação.
+     * @param {number} id - ID do documento
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Object|undefined} Dados do documento se pertencer ao usuário
      */
     buscarPorIdComDono: async (id, administradorId) => {
         const sql = `
@@ -31,6 +44,11 @@ const Documento = {
         return linhas[0];
     },
 
+    /**
+     * Busca todos os documentos anexados pelo usuário logado.
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Array} Lista completa de documentos do usuário
+     */
     buscarTodos: async (administradorId) => {
         const sql = `
             SELECT d.*, l.numero_processo, l.orgao_publico
@@ -43,6 +61,11 @@ const Documento = {
         return linhas;
     },
 
+    /**
+     * Cadastra um novo documento de edital/anexo para uma licitação.
+     * @param {Object} dados - Objeto contendo licitacao_id, nome, tipo, arquivo_path e data_vencimento
+     * @returns {Object} Resultado da inserção no banco
+     */
     criar: async (dados) => {
         const { licitacao_id, nome, tipo, arquivo_path, data_vencimento } = dados;
         const sql = `
@@ -54,6 +77,12 @@ const Documento = {
         return resultado;
     },
 
+    /**
+     * Atualiza os dados de um documento.
+     * @param {number} id - ID do documento
+     * @param {Object} dados - Novos dados do documento
+     * @returns {Object} Resultado da atualização
+     */
     atualizar: async (id, dados) => {
         const { nome, tipo, arquivo_path, data_vencimento } = dados;
         const sql = "UPDATE documento SET nome = ?, tipo = ?, arquivo_path = ?, data_vencimento = ? WHERE id = ?";
@@ -62,12 +91,23 @@ const Documento = {
         return resultado;
     },
 
+    /**
+     * Exclui um documento do banco de dados.
+     * @param {number} id - ID do documento
+     * @returns {Object} Resultado da exclusão
+     */
     excluir: async (id) => {
         const sql = "DELETE FROM documento WHERE id = ?";
         const [resultado] = await db.query(sql, [id]);
         return resultado;
     },
 
+    /**
+     * Busca documentos com data de vencimento próxima para alerta do usuário.
+     * @param {number} dias - Intervalo de dias para verificar o vencimento
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Array} Lista de documentos prestes a vencer
+     */
     buscarVencendoEm: async (dias, administradorId) => {
         const sql = `
             SELECT d.*, l.numero_processo, l.orgao_publico

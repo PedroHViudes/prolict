@@ -1,0 +1,9 @@
+/* ============================================================
+   ESTILOS DO COMPONENTE LOTE CARD
+   ============================================================ */
+
+.lote-input-quantidade {
+  width: 120px !important;
+  margin: 0 auto !important;
+  text-align: center !important;
+}

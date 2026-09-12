@@ -1,0 +1,16 @@
+/* ============================================================
+   ESTILOS DE RELATÓRIOS
+   ============================================================ */
+
+.btn-exportar-csv {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.texto-saldo-positivo {
+  color: #ff6600 !important;
+}
+
+.texto-saldo-zerado {
+  color: var(--prolicit-verde) !important;
+}

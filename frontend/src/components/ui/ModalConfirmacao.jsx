@@ -1,5 +1,19 @@
 import React from 'react';
+import '../../estilos/ModalConfirmacao.css';
 
+/**
+ * Componente Modal de Confirmação reutilizável.
+ * Exibe uma janela modal centralizada para confirmação de ações destrutivas (ex: exclusão de conta ou registro).
+ * 
+ * @param {boolean} isOpen - Define se a janela modal está visível
+ * @param {string} title - Título do modal
+ * @param {string} message - Mensagem explicativa para o usuário
+ * @param {Function} onConfirm - Callback acionado ao clicar no botão de confirmação
+ * @param {Function} onCancel - Callback acionado ao cancelar ou fechar
+ * @param {string} confirmText - Rótulo do botão de confirmação
+ * @param {string} cancelText - Rótulo do botão de cancelamento
+ * @param {string} confirmVariant - Variante de cor Bootstrap do botão (ex: 'danger', 'primary')
+ */
 export default function ConfirmModal({ 
   isOpen, 
   title = "Confirmar ação", 
@@ -16,17 +30,15 @@ export default function ConfirmModal({
     <>
       {/* Backdrop (fundo escuro) */}
       <div 
-        className="modal-backdrop fade show" 
-        style={{ zIndex: 1050 }}
+        className="modal-backdrop fade show z-index-modal" 
         onClick={onCancel}
       />
 
       {/* Modal Box */}
       <div 
-        className="modal fade show d-block" 
+        className="modal fade show d-block z-index-modal-backdrop" 
         tabIndex="-1" 
         role="dialog"
-        style={{ zIndex: 1055 }}
       >
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content border-0 shadow">

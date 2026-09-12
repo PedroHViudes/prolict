@@ -5,6 +5,7 @@ import Header from '../components/layout/Header';
 import Card from '../components/layout/Card';
 import api from '../services/api';
 import '../estilos/Dashboard.css';
+import '../estilos/Relatorios.css';
 import Toast from '../components/ui/Toast';
 
 
@@ -184,8 +185,7 @@ export default function Relatorios() {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold m-0">Detalhes dos Serviços</h4>
           <button
-            className="btn btn-sm text-white rounded-pill px-3"
-            style={{ backgroundColor: 'var(--prolicit-verde)' }}
+            className="btn btn-sm text-white rounded-pill px-3 bg-prolicit-verde"
             onClick={exportarServicosCSV}
           >
             <FaFileCsv className="me-1" /> Exportar CSV

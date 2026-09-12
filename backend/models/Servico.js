@@ -6,6 +6,11 @@ const db = require('../db');
  */
 const Servico = {
 
+    /**
+     * Busca todos os serviços realizados pelo usuário logado.
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Array} Lista de serviços cadastrados
+     */
     buscarTodos: async (administradorId) => {
         const sql = `
             SELECT s.*, i.descricao as item_descricao, i.quantidade_ganha, i.quantidade_executada,
@@ -21,6 +26,12 @@ const Servico = {
         return linhas;
     },
 
+    /**
+     * Busca um serviço pelo seu ID verificando pertencimento ao usuário.
+     * @param {number} id - ID do serviço
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {Object|undefined} Dados do serviço
+     */
     buscarPorId: async (id, administradorId) => {
         const sql = `
             SELECT s.*, i.descricao as item_descricao, i.quantidade_ganha, i.quantidade_executada,
@@ -35,6 +46,11 @@ const Servico = {
         return linhas[0];
     },
 
+    /**
+     * Registra um novo serviço realizado (baixa operacional no item da licitação).
+     * @param {Object} dados - Objeto contendo item_id, administrador_id, nome_servico, valor_fixo, data_execucao, descricao_detalhada e quantidade
+     * @returns {Object} Resultado da inserção
+     */
     criar: async (dados) => {
         const { item_id, administrador_id, nome_servico, valor_fixo, data_execucao, descricao_detalhada, quantidade } = dados;
         
@@ -65,6 +81,12 @@ const Servico = {
         return resultado;
     },
 
+    /**
+     * Atualiza os dados de um serviço realizado.
+     * @param {number} id - ID do serviço
+     * @param {Object} dados - Novas informações do serviço
+     * @returns {Object} Resultado da atualização
+     */
     atualizar: async (id, dados) => {
         const { nome_servico, valor_fixo, data_execucao, descricao_detalhada } = dados;
         const sql = `
@@ -77,6 +99,11 @@ const Servico = {
         return resultado;
     },
 
+    /**
+     * Exclui um serviço realizado e estorna a quantidade executada no item.
+     * @param {number} id - ID do serviço a ser removido
+     * @returns {Object} Resultado da exclusão
+     */
     excluir: async (id) => {
         const sqlBusca = "SELECT item_id, quantidade FROM servico WHERE id = ?";
         const [servicos] = await db.query(sqlBusca, [id]);
@@ -92,6 +119,11 @@ const Servico = {
         return resultado;
     },
 
+    /**
+     * Soma o valor financeiro total de serviços prestados pelo usuário.
+     * @param {number} administradorId - ID do usuário logado
+     * @returns {number} Valor total executado em serviços
+     */
     somarValorTotal: async (administradorId) => {
         const sql = "SELECT COALESCE(SUM(valor_fixo), 0) as total FROM servico WHERE administrador_id = ?";
         const [linhas] = await db.query(sql, [administradorId]);

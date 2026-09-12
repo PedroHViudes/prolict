@@ -198,13 +198,13 @@ export default function Dashboard() {
                               </>
                             )}
                           </td>
-                          <td style={{ minWidth: '180px' }}>
+                          <td className="min-w-180">
                             <small className="text-muted">
                               {formatarMoeda(lic.valor_executado)} / {formatarMoeda(lic.valor_estimado)}
                             </small>
                           </td>
                           <td className="text-end">
-                            <strong style={{ color: parseFloat(lic.saldo || 0) > 0 ? '#33cc99' : 'var(--prolicit-verde)' }}>
+                            <strong className="text-prolicit-verde">
                               {formatarMoeda(lic.saldo)}
                             </strong>
                           </td>
@@ -246,7 +246,7 @@ export default function Dashboard() {
                           </>
                         )}
                       </div>
-                      <span className="fw-bold" style={{ color: 'var(--prolicit-verde)' }}>
+                      <span className="fw-bold text-prolicit-verde">
                         {formatarMoeda(e.valor_fixo)}
                       </span>
                     </div>

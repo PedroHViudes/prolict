@@ -5,6 +5,7 @@ import Layout from '../components/layout/Layout';
 import Header from '../components/layout/Header';
 import Card from '../components/layout/Card';
 import api from '../services/api';
+import '../estilos/Servicos.css';
 
 /**
  * Página para adicionar ou editar um Serviço (Baixa Operacional).
@@ -30,12 +31,12 @@ export default function ServicoAdicionar() {
   const [itemSelecionado, setItemSelecionado] = useState(null);
 
 
-  //toast
-  const [toast, setToast] = useState({ show: false, message: '' });
+  // Toast estado padronizado
+  const [toastState, setToastState] = useState({ visivel: false, mensagem: '' });
 
-  function exibirToast(message) {
-    setToast({ show: true, message });
-    setTimeout(() => setToast({ show: false, message: '' }), 3000);
+  function exibirToast(mensagem) {
+    setToastState({ visivel: true, mensagem });
+    setTimeout(() => setToastState({ visivel: false, mensagem: '' }), 3000);
   }
 
 
@@ -335,11 +336,8 @@ export default function ServicoAdicionar() {
                 {licitacoes.map((lic) => (
                   <div key={lic.id} className="col-md-6 col-lg-4 mb-3">
                     <div
-                      className="border rounded p-3 cursor-pointer h-100"
-                      style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                      className="border rounded p-3 cursor-pointer-hover h-100"
                       onClick={() => selecionarLicitacao(lic)}
-                      onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--prolicit-verde)'}
-                      onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--cor-borda)'}
                     >
                       <div className="d-flex align-items-start justify-content-between">
                         <div>
@@ -389,7 +387,7 @@ export default function ServicoAdicionar() {
             ) : (
               lotesItens.map((lote) => (
                 <div key={lote.id} className="border rounded p-3 mb-4">
-                  <h5 className="fw-bold mb-3 " style={{ color: 'var(--cor-fundo-servico)' }}>
+                  <h5 className="fw-bold mb-3 text-servico">
                     <FaBox className="me-2" />
                     {lote.numero_lote || 'Lote sem número'}
                     {lote.descricao && <small className="text-muted ms-2">- {lote.descricao}</small>}
@@ -541,11 +539,10 @@ export default function ServicoAdicionar() {
                 <label className="form-label fw-bold">Valor Total</label>
                 <input
                   type="text"
-                  className="form-control fw-bold"
+                  className="form-control fw-bold text-prolicit-verde"
                   value={formatarMoeda(formData.valor_fixo)}
                   readOnly
                   disabled
-                  style={{ color: 'var(--prolicit-verde)' }}
                 />
                 <small className="text-muted">Qtd × Valor Unit.</small>
               </div>
@@ -630,8 +627,7 @@ export default function ServicoAdicionar() {
             {/* Botões de Ação */}
             <div className="d-flex gap-3 mt-4">
               <button
-                className="btn text-white px-5 py-2 fw-bold rounded-3"
-                style={{ backgroundColor: 'var(--prolicit-verde)' }}
+                className="btn text-white px-5 py-2 fw-bold rounded-3 bg-prolicit-verde"
                 onClick={salvarServico}
                 disabled={salvando}
               >
@@ -639,8 +635,7 @@ export default function ServicoAdicionar() {
               </button>
               <button
                 type="button"
-                className="btn text-white px-5 py-2 fw-bold rounded-3"
-                style={{ backgroundColor: '#4a5568' }}
+                className="btn text-white px-5 py-2 fw-bold rounded-3 bg-cinza-escuro"
                 onClick={() => navigate('/servicos')}
               >
                 Cancelar
@@ -651,11 +646,11 @@ export default function ServicoAdicionar() {
       </Card>
 
       {/* Renderização do Toast Global */}
-                    {toast.visivel && (
-                      <Toast>
-                        {toast.mensagem}
-                      </Toast>
-                    )}
+      {toastState.visivel && (
+        <Toast>
+          {toastState.mensagem}
+        </Toast>
+      )}
       
     </Layout>
   );

@@ -5,6 +5,7 @@ import Card from '../components/layout/Card';
 import api from '../services/api';
 import Toast from '../components/ui/Toast';
 import ModalConfirmacao from '../components/ui/ModalConfirmacao';
+import '../estilos/Perfil.css';
 
 export default function Perfil() {
   // Dados do perfil
@@ -100,7 +101,7 @@ export default function Perfil() {
   }
 
   // 4. Executado somente quando o usuário confirma dentro do Modal
-  const confirmarExclusao = async () => {
+  async function confirmarExclusao() {
     setModalExcluirAberto(false); // Fecha o modal primeiro
     try {
       await api.delete('/perfil');
@@ -111,7 +112,7 @@ export default function Perfil() {
       console.error("Erro ao excluir conta:", erro);
       exibirToast("Erro ao excluir conta.");
     }
-  };
+  }
 
   return (
     <Layout>
@@ -153,8 +154,7 @@ export default function Perfil() {
             </div>
 
             <button 
-              className="btn text-white rounded-pill px-4 fw-bold" 
-              style={{ backgroundColor: 'var(--prolicit-verde)' }}
+              className="btn text-white rounded-pill px-4 fw-bold bg-prolicit-verde" 
               onClick={salvarPerfil}
               disabled={salvandoPerfil}
             >
@@ -201,8 +201,7 @@ export default function Perfil() {
             </div>
 
             <button 
-              className="btn text-white rounded-pill px-4 fw-bold" 
-              style={{ backgroundColor: 'var(--prolicit-verde)' }}
+              className="btn text-white rounded-pill px-4 fw-bold bg-prolicit-verde" 
               onClick={atualizarSenha}
               disabled={salvandoSenha}
             >
@@ -216,7 +215,7 @@ export default function Perfil() {
           
           <Card className="mb-4">
             <h5 className="fw-bold mb-3">Excluir a Conta</h5>
-            <p className="text-muted small mb-4" style={{ lineHeight: '1.6' }}>
+            <p className="text-muted small mb-4 line-height-16">
               Após a exclusão da conta, todos os seus recursos e dados serão excluídos permanentemente. 
               Antes de excluir sua conta, baixe todos os seus dados ou informações que deseja manter.
             </p>
@@ -232,7 +231,7 @@ export default function Perfil() {
 
           <Card>
             <h5 className="fw-bold mb-3">Sobre o PROLICIT</h5>
-            <p className="text-muted small mb-0" style={{ lineHeight: '1.6', textAlign: 'justify' }}>
+            <p className="text-muted small mb-0 line-height-16 text-justify">
               O PROLICIT é um sistema de gestão de licitações desenvolvido para micro, pequenas e médias empresas. 
               Ele substitui o controle manual em Excel por uma plataforma digital profissional, 
               organizando itens, lotes e processos licitatórios de forma centralizada e segura.

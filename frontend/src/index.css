@@ -1,10 +1,29 @@
+/* ============================================================
+   PROLICIT - ESTILOS PRINCIPAIS (INDEX.CSS)
+   ============================================================ */
 
-
-/* Importando os temas separados */
+/* Importando os temas e configurações base */
 @import './estilos/tema-claro.css';
 @import './estilos/tema-escuro.css';
 @import './estilos/Fontes.css';
 
+/* Importando os estilos individuais por página */
+@import './estilos/Cadastro.css';
+@import './estilos/Configuracao.css';
+@import './estilos/Dashboard.css';
+@import './estilos/EsqueciSenha.css';
+@import './estilos/Licitacoes.css';
+@import './estilos/Login.css';
+@import './estilos/Perfil.css';
+@import './estilos/RedefinirSenha.css';
+@import './estilos/Relatorios.css';
+@import './estilos/Servicos.css';
+
+/* Importando os estilos individuais por componente */
+@import './estilos/PdfIAUpload.css';
+@import './estilos/LoteCard.css';
+@import './estilos/Toast.css';
+@import './estilos/ModalConfirmacao.css';
 
 body {
   font-family: 'Poppins', sans-serif !important;
@@ -18,5 +37,64 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Classes utilitárias do projeto */
+.bg-prolicit-verde {
+  background-color: var(--prolicit-verde) !important;
+}
 
+.bg-prolicit-azul {
+  background-color: var(--prolicit-azul) !important;
+}
 
+.bg-cinza-escuro {
+  background-color: #4a5568 !important;
+}
+
+.text-prolicit-verde {
+  color: var(--prolicit-verde) !important;
+}
+
+.text-prolicit-azul {
+  color: var(--prolicit-azul) !important;
+}
+
+.text-prolicit-laranja {
+  color: var(--prolicit-laranja) !important;
+}
+
+.text-servico {
+  color: var(--cor-fundo-servico) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-pointer-hover {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.z-index-toast {
+  z-index: 9999 !important;
+}
+
+.z-index-modal {
+  z-index: 1050 !important;
+}
+
+.z-index-modal-backdrop {
+  z-index: 1055 !important;
+}
+
+.logo-max-width {
+  max-width: 200px !important;
+}
+
+.line-height-16 {
+  line-height: 1.6 !important;
+}
+
+.min-w-180 {
+  min-width: 180px !important;
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { IoMdNotifications } from "react-icons/io";
+import '../../estilos/Toast.css';
 
 
 /**
@@ -13,8 +14,7 @@ export default function Toast({ children, className = '' }) {
   return (
 <div aria-live="polite" aria-atomic="true" className="position-relative w-100">
 
-<div className={`toast-container position-fixed bottom-0 end-0 p-3 ${className}`}
-style={{ zIndex: 9999 }}>
+<div className={`toast-container position-fixed bottom-0 end-0 p-3 z-index-toast ${className}`}>
 
   <div className="toast show" role="alert" aria-live="assertive" aria-atomic="true">
     <div className="toast-header">

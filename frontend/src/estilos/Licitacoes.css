@@ -1,0 +1,33 @@
+/* ============================================================
+   ESTILOS DE LICITAÇÕES E ADICIONAR LICITAÇÃO
+   ============================================================ */
+
+.btn-adicionar-licitacao {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.btn-salvar-licitacao {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.btn-adicionar-lote {
+  background-color: var(--prolicit-azul) !important;
+  color: #ffffff !important;
+}
+
+.btn-cancelar-licitacao {
+  background-color: #4a5568 !important;
+  color: #ffffff !important;
+}
+
+.badge-status-ativa {
+  background-color: #198754 !important;
+  color: #ffffff !important;
+}
+
+.badge-status-inativa {
+  background-color: #6c757d !important;
+  color: #ffffff !important;
+}

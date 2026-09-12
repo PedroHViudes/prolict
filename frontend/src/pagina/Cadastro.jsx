@@ -4,6 +4,7 @@ import { LuUser, LuMail, LuLock } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
 import "../estilos/Cadastro.css";
 import api from "../services/api";
+import CustomToast from '../components/ui/Toast';
 
 import logo from "../assets/logo.png";
 import img_cadastro from "../assets/imgcadastro.png";
@@ -20,6 +21,16 @@ export default function Cadastro() {
     const [confirmarSenha, setConfirmarSenha] = useState("");
     const [carregando, setCarregando] = useState(false);
 
+   // Mudamos o nome do estado para 'toastState' para não conflitar
+    const [toastState, setToastState] = useState({ visivel: false, mensagem: '' });
+
+    function exibirToast(mensagem) {
+        setToastState({ visivel: true, mensagem });
+        setTimeout(() => setToastState({ visivel: false, mensagem: '' }), 3500);
+    }
+
+
+
     const navigate = useNavigate();
 
     /**
@@ -31,13 +42,13 @@ export default function Cadastro() {
 
         // Validação: senhas devem ser iguais
         if (senha !== confirmarSenha) {
-            alert("As senhas não coincidem! Verifique e tente novamente.");
+            exibirToast("As senhas não coincidem! Verifique e tente novamente.");
             return;
         }
 
         // Validação: campos obrigatórios
         if (!nome || !email || !senha) {
-            alert("Preencha todos os campos.");
+            exibirToast("Preencha todos os campos.");
             return;
         }
 
@@ -50,11 +61,15 @@ export default function Cadastro() {
                 senha: senha,
             });
 
-            alert(response.data.mensagem);
-            navigate("/"); // Redireciona para a tela de Login
+            exibirToast(response.data.mensagem);
+            // Redireciona para a tela de Login
+            setTimeout(() => {
+                navigate("/");
+            }, 2000);
+            
         } catch (error) {
             const mensagemErro = error.response?.data?.mensagem || "Servidor Indisponível";
-            alert(mensagemErro);
+            exibirToast(mensagemErro);
         } finally {
             setCarregando(false);
         }
@@ -77,7 +92,7 @@ export default function Cadastro() {
                                 <Col md={6} className="p-4 p-lg-5 bg-white">
                                     <div className="text-center mb-4">
                                         <h2 className="cadastro-title d-flex align-items-center justify-content-center gap-2">
-                                            <img src={logo} alt="Logo ProLicit" style={{ maxWidth: '200px' }} />
+                                            <img src={logo} alt="Logo ProLicit" className="logo-max-width" />
                                         </h2>
                                         <h5 className="mt-3">
                                             Cadastrar-se no <span className="text-prolicit-verde">ProLicit!</span>
@@ -144,6 +159,14 @@ export default function Cadastro() {
                     </Col>
                 </Row>
             </Container>
+            {/* Toast flutuante posicionado fora do grid principal */}
+            {toastState.visivel && (
+                <div className="toast-overlay-container">
+                    <CustomToast> 
+                        {toastState.mensagem}
+                    </CustomToast>
+                </div>
+            )}
         </div>
     );
 }

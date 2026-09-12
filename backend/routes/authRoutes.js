@@ -6,6 +6,8 @@ const autenticar = require('../middleware/autenticar');
 // Rotas públicas
 router.post('/login', AuthController.login);
 router.post('/cadastro', AuthController.cadastrar);
+router.post('/esqueci-senha', AuthController.solicitarRecuperacaoSenha);
+router.post('/redefinir-senha', AuthController.redefinirSenhaComToken);
 
 // Rotas protegidas (perfil)
 router.use(autenticar);

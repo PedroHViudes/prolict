@@ -1,0 +1,35 @@
+/* ============================================================
+   ESTILOS DE SERVIÇOS E ADICIONAR SERVIÇO
+   ============================================================ */
+
+.btn-adicionar-servico {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.btn-salvar-servico {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.btn-cancelar-servico {
+  background-color: #4a5568 !important;
+  color: #ffffff !important;
+}
+
+.card-selecionar-licitacao {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.card-selecionar-licitacao:hover {
+  border-color: var(--prolicit-verde) !important;
+}
+
+.titulo-lote-servico {
+  color: var(--cor-fundo-servico) !important;
+}
+
+.valor-total-servico {
+  color: var(--prolicit-verde) !important;
+}

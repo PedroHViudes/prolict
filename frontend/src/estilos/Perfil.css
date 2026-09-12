@@ -1,0 +1,22 @@
+/* ============================================================
+   ESTILOS DA PÁGINA DE PERFIL
+   ============================================================ */
+
+.btn-salvar-perfil {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.btn-atualizar-senha {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}
+
+.texto-descricao-perfil {
+  line-height: 1.6 !important;
+}
+
+.texto-sobre-prolicit {
+  line-height: 1.6 !important;
+  text-align: justify !important;
+}

@@ -1,6 +1,20 @@
 import React from 'react';
 import { FaTrash, FaPlus } from 'react-icons/fa';
+import '../../estilos/LoteCard.css';
 
+/**
+ * Componente Card de Lote e seus Itens.
+ * Renderiza os campos de um lote específico e a tabela dinâmica de seus itens correspondentes.
+ * 
+ * @param {Object} lote - Dados do lote (numero_lote, valor_total_arrematado, descricao, itens)
+ * @param {number} loteIndice - Índice do lote na lista da licitação
+ * @param {Array} errosLotes - Lista de índices de lotes com erros de validação
+ * @param {Function} onAtualizarLote - Callback para atualizar campos do lote
+ * @param {Function} onRemoverLote - Callback para excluir o lote
+ * @param {Function} onAdicionarItem - Callback para inserir novo item no lote
+ * @param {Function} onAtualizarItem - Callback para atualizar valores do item
+ * @param {Function} onRemoverItem - Callback para remover item do lote
+ */
 export default function LoteCard({ 
   lote, 
   loteIndice, 
@@ -88,29 +102,26 @@ export default function LoteCard({
                 <td className="text-start">
                   <input
                     type="text"
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm w-100 m-0"
                     value={item.descricao}
                     onChange={(e) => onAtualizarItem(loteIndice, itemIndice, 'descricao', e.target.value)}
                     placeholder="Descrição do item"
-                    style={{ margin: '0', width: '100%' }}
                   />
                 </td>
                 <td>
                   <input
                     type="number"
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm lote-input-quantidade"
                     value={item.quantidade_ganha}
                     onChange={(e) => onAtualizarItem(loteIndice, itemIndice, 'quantidade_ganha', e.target.value)}
-                    style={{ width: '120px', margin: '0 auto', textAlign: 'center' }}
                   />
                 </td>
                 <td className="text-center">
                   <input
                     type="number"
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm lote-input-quantidade"
                     value={item.valor_unitario}
                     onChange={(e) => onAtualizarItem(loteIndice, itemIndice, 'valor_unitario', e.target.value)}
-                    style={{ width: '120px', margin: '0 auto', textAlign: 'center' }}
                   />
                 </td>
                 <td>

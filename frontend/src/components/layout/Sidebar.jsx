@@ -27,11 +27,11 @@ export default function Sidebar() {
    * Remove o token e os dados do usuário do localStorage,
    * depois redireciona para a tela de login.
    */
-  const handleLogout = () => {
+  function handleLogout() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     navigate('/');
-  };
+  }
 
   return (
     <div className="d-flex flex-column flex-shrink-0 area-sidebar vh-100">

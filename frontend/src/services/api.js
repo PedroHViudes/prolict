@@ -36,7 +36,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (resposta) => resposta,
     (erro) => {
-        if (erro.response && erro.response.status === 401) {
+        // Se o erro 401 ocorrer fora da rota de login, significa que o token expirou
+        const ehRotaLogin = erro.config && erro.config.url && (erro.config.url.endsWith('/login') || erro.config.url.includes('/login'));
+        if (erro.response && erro.response.status === 401 && !ehRotaLogin) {
             localStorage.removeItem('token');
             localStorage.removeItem('usuario');
             window.location.href = '/';

@@ -1,9 +1,5 @@
 const pdfParse = require('pdf-parse');
-const { GoogleGenAI } = require('@google/genai');
-
-// Inicializa a IA com a chave da variável de ambiente
-// O usuário precisa adicionar GEMINI_API_KEY no arquivo .env
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const { GoogleGenAI } = require('@google/genai');   
 
 class PdfExtractController {
     async extrair(req, res) {
@@ -14,11 +10,15 @@ class PdfExtractController {
             }
 
             // Garante que a API Key foi configurada
-            if (!process.env.GEMINI_API_KEY) {
+            const apiKey = process.env.GEMINI_API_KEY;
+            if (!apiKey || apiKey.trim() === '') {
                 return res.status(500).json({ 
-                    mensagem: "Chave de API do Gemini não configurada. Configure a GEMINI_API_KEY no arquivo .env." 
+                    mensagem: "Chave de API do Gemini não configurada no arquivo .env." 
                 });
             }
+
+            // Inicializa o cliente do Gemini dinamicamente com a chave atual
+            const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
 
             // 1. Converte o buffer do PDF para texto bruto
             const data = await pdfParse(req.file.buffer);
@@ -72,10 +72,11 @@ ${textoBruto.substring(0, 30000)} // Limitando o texto para evitar estourar o li
             while (tentativas < maxTentativas) {
                 try {
                     response = await ai.models.generateContent({
-                        model: 'gemini-3.6-flash',
+                        model: 'gemini-2.5-flash',
                         contents: prompt,
                         config: {
-                            temperature: 0.1 // Temperatura baixa para respostas mais determinísticas e precisas
+                            temperature: 0.1,
+                            responseMimeType: 'application/json'
                         }
                     });
                     break; // Se deu certo, sai do loop
@@ -83,34 +84,40 @@ ${textoBruto.substring(0, 30000)} // Limitando o texto para evitar estourar o li
                     if (erroApi.status === 503 && tentativas < maxTentativas - 1) {
                         tentativas++;
                         console.log(`Servidor do Gemini ocupado (Erro 503). Tentando novamente em breve... (${tentativas}/${maxTentativas})`);
-                        // Espera 2 segundos antes de tentar de novo
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     } else {
-                        throw erroApi; // Se não for 503 ou estourar as tentativas, lança o erro pra cima
+                        throw erroApi;
                     }
                 }
             }
 
             // 3. Limpa a resposta para garantir que seja um JSON válido
-            let jsonText = response.text;
+            let jsonText = response.text ? response.text.trim() : '';
             
-            // Remove as marcações de markdown do começo e do fim (ex: ```json e ```)
-            if (jsonText.startsWith('```json')) {
-                jsonText = jsonText.substring(7);
-            }
-            if (jsonText.endsWith('```')) {
-                jsonText = jsonText.substring(0, jsonText.length - 3);
-            }
-            if (jsonText.startsWith('```')) {
-                jsonText = jsonText.substring(3);
-            }
+            // Remove possíveis marcações de markdown do começo e do fim (ex: ```json e ```)
+            jsonText = jsonText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
             
-            const extraido = JSON.parse(jsonText.trim());
+            let extraido;
+            try {
+                extraido = JSON.parse(jsonText);
+            } catch (parseErro) {
+                console.error("Erro ao fazer parse do JSON retornado pela IA:", parseErro, "Texto recebido:", jsonText);
+                return res.status(500).json({
+                    mensagem: "A IA retornou uma resposta em formato inválido.",
+                    detalhes: parseErro.message
+                });
+            }
 
             return res.status(200).json(extraido);
 
         } catch (erro) {
             console.error("Erro na extração do PDF:", erro);
+            if (erro.status === 401 || (erro.message && erro.message.includes('UNAUTHENTICATED'))) {
+                return res.status(401).json({
+                    mensagem: "Chave de API do Gemini inválida ou não autorizada no arquivo .env (Erro 401).",
+                    detalhes: "Obtenha uma chave gratuita válida no Google AI Studio (https://aistudio.google.com/app/apikey) e cole no GEMINI_API_KEY no arquivo backend/.env."
+                });
+            }
             return res.status(500).json({ 
                 mensagem: "Erro ao processar e extrair dados do PDF.",
                 detalhes: erro.message 

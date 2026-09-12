@@ -3,6 +3,7 @@ import Layout from '../components/layout/Layout';
 import Header from '../components/layout/Header';
 import Card from '../components/layout/Card';
 import Toast from '../components/ui/Toast';
+import '../estilos/Configuracao.css';
 
 /**
  * Página de Configurações do Sistema.
@@ -113,8 +114,7 @@ function exibirToast(mensagem) {
         </div>
 
         <button 
-          className="btn text-white rounded-pill px-4 py-1 fw-bold" 
-          style={{ backgroundColor: 'var(--prolicit-verde)' }}
+          className="btn text-white rounded-pill px-4 py-1 fw-bold bg-prolicit-verde" 
           onClick={aplicarTema}
         >
           Aplicar Tema
@@ -172,8 +172,7 @@ function exibirToast(mensagem) {
         </div>
 
         <button 
-          className="btn text-white rounded-pill px-4 py-1 fw-bold" 
-          style={{ backgroundColor: 'var(--prolicit-verde)' }}
+          className="btn text-white rounded-pill px-4 py-1 fw-bold bg-prolicit-verde" 
           onClick={aplicarFonte}
         >
           Aplicar Tamanho
