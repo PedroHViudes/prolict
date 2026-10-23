@@ -29,7 +29,11 @@ app.use('/api', routes);
 // INICIALIZAÇÃO DO SERVIDOR
 // ============================================================
 const PORTA = process.env.PORT || 3001;
-app.listen(PORTA, () => {
-    console.log(`Backend PROLICIT rodando perfeitamente na porta ${PORTA}!`);
-    console.log(`Banco de dados: ${process.env.DB_NAME}@${process.env.DB_HOST}`);
-});
+if (require.main === module) {
+    app.listen(PORTA, () => {
+        console.log(`Backend PROLICIT rodando perfeitamente na porta ${PORTA}!`);
+        console.log(`Banco de dados: ${process.env.DB_NAME}@${process.env.DB_HOST}`);
+    });
+}
+
+module.exports = app;

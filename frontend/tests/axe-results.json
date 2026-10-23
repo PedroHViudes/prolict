@@ -1,0 +1,118 @@
+[
+  {
+    "pagina": "Dashboard",
+    "tema": "Claro",
+    "violacoesCount": 1,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Dashboard",
+    "tema": "Escuro",
+    "violacoesCount": 1,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Licitações",
+    "tema": "Claro",
+    "violacoesCount": 1,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Licitações",
+    "tema": "Escuro",
+    "violacoesCount": 1,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Serviços",
+    "tema": "Claro",
+    "violacoesCount": 1,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Serviços",
+    "tema": "Escuro",
+    "violacoesCount": 1,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Relatórios",
+    "tema": "Claro",
+    "violacoesCount": 2,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "description": "Ensure every form element has a label",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label?application=playwright"
+      }
+    ]
+  },
+  {
+    "pagina": "Relatórios",
+    "tema": "Escuro",
+    "violacoesCount": 2,
+    "violacoes": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright"
+      },
+      {
+        "id": "label",
+        "impact": "critical",
+        "description": "Ensure every form element has a label",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/label?application=playwright"
+      }
+    ]
+  }
+]

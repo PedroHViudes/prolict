@@ -1,0 +1,709 @@
+[
+ {
+  "sec": "Autenticação",
+  "nome": "Cadastro válido → 201",
+  "ok": true,
+  "info": "Usuário cadastrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "E-mail duplicado → 400",
+  "ok": true,
+  "info": "Esse e-mail já está sendo usado.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Cadastro sem campos → 400",
+  "ok": true,
+  "info": "Dados obrigatórios faltando.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Cadastro com e-mail inválido e senha \"1\" é recusado",
+  "ok": true,
+  "info": "status 400: Informe um e-mail válido.",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Senha errada → 401",
+  "ok": true,
+  "info": "E-mail ou senha incorretos.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "E-mail inexistente → 401 (mesma msg)",
+  "ok": true,
+  "info": "E-mail ou senha incorretos.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Login sem campos → 400",
+  "ok": true,
+  "info": "E-mail e senha são obrigatórios.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Login válido → 200 + token",
+  "ok": true,
+  "info": "Login realizado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Login com e-mail em maiúsculas/espaços",
+  "ok": true,
+  "info": "status 200",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Rota protegida sem token → 401",
+  "ok": true,
+  "info": "Acesso negado. Token de autenticação não fornecido.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Token inválido → 401",
+  "ok": true,
+  "info": "Token inválido ou expirado. Faça login novamente.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "GET perfil",
+  "ok": true,
+  "info": "{\"id\":43,\"nome\":\"Usuário A\",\"email\":\"a1792717796095@teste.com\",\"criado_em\":\"2026-10-23T04:09:56.000Z\"}",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Perfil com e-mail de outro → 400",
+  "ok": true,
+  "info": "Esse e-mail já está sendo usado por outra conta.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Atualizar perfil → 200",
+  "ok": true,
+  "info": "Perfil atualizado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Trocar senha com senha atual errada é recusado",
+  "ok": true,
+  "info": "A senha atual está incorreta.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Senha atual errada NÃO deveria devolver 401 (o front interpreta como sessão expirada e desloga)",
+  "ok": true,
+  "info": "status 400",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Trocar senha → 200",
+  "ok": true,
+  "info": "Senha atualizada com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Autenticação",
+  "nome": "Login com senha nova",
+  "ok": true,
+  "info": "Login realizado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Recuperação de senha",
+  "nome": "Resposta igual para e-mail cadastrado e não cadastrado (não revela contas)",
+  "ok": false,
+  "info": "mensagens diferentes: \"Se este e-mail estiver cadastrado em nos…\" vs \"Código de verificação… enviado\"",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Recuperação de senha",
+  "nome": "PIN errado → 400",
+  "ok": true,
+  "info": "A nova senha deve ter pelo menos 6 caracteres.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Recuperação de senha",
+  "nome": "Limite de tentativas de PIN (força bruta)",
+  "ok": true,
+  "info": "24 tentativas seguidas aceitas sem bloqueio",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Criar licitação → 201",
+  "ok": true,
+  "info": "Licitação cadastrada com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Sem nº processo → 400",
+  "ok": true,
+  "info": "O número do processo e órgão público são obrigatórios.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Buscar licitação",
+  "ok": true,
+  "info": "{\"id\":33,\"administrador_id\":43,\"numero_processo\":\"PE 001/2026\",\"orgao_publico\":\"Prefeitura Teste\",\"data_abertura\":\"2026-",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Data de abertura volta igual (sem deslocar fuso)",
+  "ok": true,
+  "info": "2026-01-10T03:00:00.000Z",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Outro usuário NÃO vê a licitação → 404",
+  "ok": true,
+  "info": "Licitação não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Outro usuário NÃO edita → 404",
+  "ok": true,
+  "info": "Licitação não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Outro usuário NÃO exclui → 404",
+  "ok": true,
+  "info": "Licitação não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Lista do usuário B não traz dados de A",
+  "ok": true,
+  "info": "0 itens",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Valor estimado negativo é recusado",
+  "ok": true,
+  "info": "status 400",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Status inválido → 400 (não 500)",
+  "ok": true,
+  "info": "status 400: Status inválido. Use 'Ativa' ou 'Finalizada'.",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "Licitação inexistente → 404",
+  "ok": true,
+  "info": "Licitação não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitações",
+  "nome": "ID não numérico → 404/400",
+  "ok": true,
+  "info": "status 404",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Criar lote 6.000 → 201",
+  "ok": true,
+  "info": "Lote cadastrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Lote que estoura (6.000+5.000 > 10.000) → 400",
+  "ok": true,
+  "info": "O valor deste lote excede o limite estimado da licitação (Restante: R$ 4000.00).",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Lote no limite exato (10.000) → 201",
+  "ok": true,
+  "info": "Lote cadastrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Outro usuário não cria lote → 404",
+  "ok": true,
+  "info": "Licitação não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Reduzir licitação abaixo da soma dos lotes → 400",
+  "ok": true,
+  "info": "O novo valor estimado não pode ser menor que a soma dos lotes cadastrados (R$ 10000.00).",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Zerar valor da licitação com lotes cadastrados é recusado",
+  "ok": true,
+  "info": "status 400; valor ficou 10000.00",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Lote com valor negativo é recusado",
+  "ok": true,
+  "info": "status 400",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Lote sem número → 400",
+  "ok": true,
+  "info": "O número do lote é obrigatório.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Lotes (RN01: soma dos lotes ≤ valor da licitação)",
+  "nome": "Listar lotes",
+  "ok": true,
+  "info": "2 lotes",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Item 100×50 = 5.000 → 201",
+  "ok": true,
+  "info": "Item cadastrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Item que estoura o lote (5.000+1.500 > 6.000) → 400",
+  "ok": true,
+  "info": "A soma dos itens excede o valor arrematado do lote (Restante: R$ 1000.00).",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Item no limite exato → 201",
+  "ok": true,
+  "info": "Item cadastrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Item sem descrição → 400",
+  "ok": true,
+  "info": "A descrição do item é obrigatória.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Outro usuário não cria item → 404",
+  "ok": true,
+  "info": "Lote não encontrado.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Reduzir lote abaixo da soma dos itens → 400",
+  "ok": true,
+  "info": "O valor do lote não pode ser menor que a soma de seus itens (R$ 6000.00).",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Aumentar lote estourando a licitação → 400",
+  "ok": true,
+  "info": "O valor deste lote excede o limite estimado da licitação.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Editar item estourando o lote → 400",
+  "ok": true,
+  "info": "A soma dos itens excede o valor arrematado do lote.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Quantidade fracionada (2,5) é tratada (recusada ou guardada como 2,5)",
+  "ok": true,
+  "info": "aceito com status 400, gravado como undefined (coluna INT arredonda)",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Itens (RN02: soma dos itens ≤ valor do lote)",
+  "nome": "Item com quantidade negativa é recusado",
+  "ok": true,
+  "info": "status 400",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Serviço de 30 (saldo 100) → 201",
+  "ok": true,
+  "info": "Serviço registrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Quantidade executada do item passou a 30",
+  "ok": true,
+  "info": "30",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Serviço de 50 (saldo 70) → 201",
+  "ok": true,
+  "info": "Serviço registrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Serviço de 21 com saldo 20 → recusado",
+  "ok": true,
+  "info": "Quantidade solicitada (21) excede o saldo disponível (20).",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Recusa por saldo devolve 400 com a mensagem do saldo (não 500 genérico)",
+  "ok": true,
+  "info": "status 400: Quantidade solicitada (21) excede o saldo disponível (20).",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Quantidade enviada como texto \"5\" funciona",
+  "ok": true,
+  "info": "Serviço registrado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Executada = 85 (30+50+5)",
+  "ok": true,
+  "info": "85",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Serviço com quantidade negativa é recusado",
+  "ok": true,
+  "info": "status 400",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Outro usuário não registra serviço no item de A → 404",
+  "ok": true,
+  "info": "Item não encontrado.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Serviço sem nome → 400",
+  "ok": true,
+  "info": "Os campos 'item_id' e 'nome do serviço' são obrigatórios.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Excluir serviço → 200",
+  "ok": true,
+  "info": "Serviço excluído com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Exclusão estorna o saldo (executada volta a 80)",
+  "ok": true,
+  "info": "80",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Reduzir quantidade ganha abaixo da executada (80) é recusado",
+  "ok": true,
+  "info": "status 400; ganha=100, executada=80 → saldo 20",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Editar serviço → 200",
+  "ok": true,
+  "info": "Serviço atualizado com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Editar serviço não altera quantidade (só nome/valor/data)",
+  "ok": true,
+  "info": "80",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Outro usuário não edita serviço → 404",
+  "ok": true,
+  "info": "Serviço não encontrado.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Dois registros simultâneos de 20 (saldo 20) — só um deve passar",
+  "ok": true,
+  "info": "1 aceitos; executada=100 de 100",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Listar serviços",
+  "ok": true,
+  "info": "2",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Lista de serviços de B vazia",
+  "ok": true,
+  "info": "0",
+  "sev": "erro"
+ },
+ {
+  "sec": "Serviços (RN03: quantidade ≤ saldo do item)",
+  "nome": "Valor total de serviços",
+  "ok": true,
+  "info": "{\"valorTotal\":\"4000.00\"}",
+  "sev": "erro"
+ },
+ {
+  "sec": "Entregas",
+  "nome": "Registrar entrega → 201",
+  "ok": true,
+  "info": "Entrega registrada com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Entregas",
+  "nome": "Listar entregas do serviço",
+  "ok": true,
+  "info": "1",
+  "sev": "erro"
+ },
+ {
+  "sec": "Entregas",
+  "nome": "Outro usuário não vê entregas → 404",
+  "ok": true,
+  "info": "Serviço não encontrado.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Entregas",
+  "nome": "Editar entrega → 200",
+  "ok": true,
+  "info": "Entrega atualizada com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Entregas",
+  "nome": "Outro usuário não exclui entrega → 404",
+  "ok": true,
+  "info": "Entrega não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Entregas",
+  "nome": "Listar todas as entregas",
+  "ok": true,
+  "info": "1",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "Serviço dentro da vigência → 201 sem marca",
+  "ok": true,
+  "info": "{\"mensagem\":\"Serviço registrado com sucesso!\",\"id\":44,\"fora_da_vigencia\":false}",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "Serviço depois da vigência é ACEITO (201), não recusado",
+  "ok": true,
+  "info": "Serviço registrado, mas marcado como executado FORA DA VIGÊNCIA da licitação.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "…e volta marcado como fora da vigência, com aviso na mensagem",
+  "ok": true,
+  "info": "{\"mensagem\":\"Serviço registrado, mas marcado como executado FORA DA VIGÊNCIA da licitação.\",\"id\":45,\"fora_da_vigencia\":true}",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "Marca gravada no banco (fora_da_vigencia = 1)",
+  "ok": true,
+  "info": "1",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "Serviço dentro da vigência continua com marca 0",
+  "ok": true,
+  "info": "0",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "Ao corrigir a vigência da licitação, a marca é recalculada",
+  "ok": true,
+  "info": "0",
+  "sev": "erro"
+ },
+ {
+  "sec": "Vigência (RN08: aceita, mas marca o serviço feito depois do fim da vigência)",
+  "nome": "Ao editar a data do serviço para depois da vigência, a marca é atualizada",
+  "ok": true,
+  "info": "1",
+  "sev": "erro"
+ },
+ {
+  "sec": "Gestão documental removida (fora do escopo)",
+  "nome": "Rota /documentos não existe mais (404)",
+  "ok": true,
+  "info": "status 404",
+  "sev": "erro"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Resumo do painel",
+  "ok": true,
+  "info": "{\"contagem\":[{\"status\":\"Ativa\",\"total\":1}],\"valorTotal\":\"10000.00\"}",
+  "sev": "erro"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Licitações ativas com saldo = estimado − executado",
+  "ok": true,
+  "info": "{\"est\":\"10000.00\",\"exe\":\"4000.00\",\"saldo\":\"6000.00\"}",
+  "sev": "erro"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Relatório geral",
+  "ok": true,
+  "info": "1",
+  "sev": "erro"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Resumo com saldo da licitação",
+  "ok": true,
+  "info": "{\"id\":33,\"administrador_id\":43,\"numero_processo\":\"PE 001/2026\",\"orgao_publico\":\"Prefeitura Teste\",\"data_abertura\":\"2026-",
+  "sev": "erro"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Lotes e itens agrupados",
+  "ok": true,
+  "info": "1",
+  "sev": "erro"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Lote sem itens aparece em lotes-itens",
+  "ok": false,
+  "info": "1 de 2 lotes (lote sem item some)",
+  "sev": "aviso"
+ },
+ {
+  "sec": "Painel e relatórios",
+  "nome": "Outro usuário → 404",
+  "ok": true,
+  "info": "Licitação não encontrada.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Licitação finalizada",
+  "nome": "Registrar serviço em licitação Finalizada é bloqueado",
+  "ok": true,
+  "info": "status 400",
+  "sev": "erro"
+ },
+ {
+  "sec": "Leitura de edital com IA",
+  "nome": "Envio sem arquivo → 400",
+  "ok": true,
+  "info": "400",
+  "sev": "erro"
+ },
+ {
+  "sec": "Exclusões em cascata",
+  "nome": "Excluir lote → 200",
+  "ok": true,
+  "info": "Lote excluído com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Exclusões em cascata",
+  "nome": "Excluir licitação → 200",
+  "ok": true,
+  "info": "Licitação excluída com sucesso!",
+  "sev": "erro"
+ },
+ {
+  "sec": "Exclusões em cascata",
+  "nome": "Serviços da licitação excluída somem (cascata)",
+  "ok": true,
+  "info": "0",
+  "sev": "erro"
+ },
+ {
+  "sec": "Exclusões em cascata",
+  "nome": "Excluir conta B → 200",
+  "ok": true,
+  "info": "Conta excluída com sucesso.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Exclusões em cascata",
+  "nome": "Conta excluída não loga",
+  "ok": true,
+  "info": "E-mail ou senha incorretos.",
+  "sev": "erro"
+ },
+ {
+  "sec": "Exclusões em cascata",
+  "nome": "Token da conta excluída deixa de funcionar",
+  "ok": true,
+  "info": "status 200 (JWT continua válido até expirar)",
+  "sev": "aviso"
+ }
+]
