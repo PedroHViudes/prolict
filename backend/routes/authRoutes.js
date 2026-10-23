@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/AuthController');
 const autenticar = require('../middleware/autenticar');
+const { limiteAuthGeral, limiteLogin, limiteEsqueciSenha, limiteRedefinir, limiteCadastro } = require('../middleware/limitadores');
 
-// Rotas públicas
-router.post('/login', AuthController.login);
-router.post('/cadastro', AuthController.cadastrar);
-router.post('/esqueci-senha', AuthController.solicitarRecuperacaoSenha);
-router.post('/redefinir-senha', AuthController.redefinirSenhaComToken);
+// Rotas públicas (com limite de tentativas contra força bruta)
+router.post('/login', limiteAuthGeral, limiteLogin, AuthController.login);
+router.post('/cadastro', limiteAuthGeral, limiteCadastro, AuthController.cadastrar);
+router.post('/esqueci-senha', limiteAuthGeral, limiteEsqueciSenha, AuthController.solicitarRecuperacaoSenha);
+router.post('/redefinir-senha', limiteAuthGeral, limiteRedefinir, AuthController.redefinirSenhaComToken);
 
 // Rotas protegidas (perfil)
 router.use(autenticar);

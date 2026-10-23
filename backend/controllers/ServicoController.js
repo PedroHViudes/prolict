@@ -54,10 +54,10 @@ const ServicoController = {
             if (!Number.isInteger(quantidade) || quantidade < 0) {
                 return res.status(400).json({ mensagem: "A quantidade deve ser um número inteiro maior ou igual a zero." });
             }
-            if (Number(dados.valor_fixo || 0) < 0) {
-                return res.status(400).json({ mensagem: "O valor do serviço não pode ser negativo." });
-            }
             dados.quantidade = quantidade;
+            // O valor do serviço é calculado no servidor (quantidade × valor unitário do item);
+            // o valor enviado pela interface é ignorado, para não aceitar valores manipulados.
+            dados.valor_fixo = Math.round(quantidade * Number(item.valor_unitario || 0) * 100) / 100;
 
             const resultado = await Servico.criar(dados);
             res.status(201).json({
@@ -90,6 +90,9 @@ const ServicoController = {
             if (!dados.nome_servico) {
                 return res.status(400).json({ mensagem: "O campo 'nome do serviço' é obrigatório." });
             }
+
+            // A quantidade não muda na edição (RN04), então o valor também é recalculado no servidor
+            dados.valor_fixo = Math.round(Number(servicoExistente.quantidade || 0) * Number(servicoExistente.valor_unitario || 0) * 100) / 100;
 
             await Servico.atualizar(id, dados);
             res.status(200).json({ mensagem: "Serviço atualizado com sucesso!" });

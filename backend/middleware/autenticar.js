@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../db');
 require('dotenv').config();
 
 /**
@@ -7,7 +8,7 @@ require('dotenv').config();
  * Se o token for válido, decodifica e anexa os dados do usuário ao request.
  * Se não, retorna erro 401 (Não Autenticado).
  */
-function autenticar(req, res, next) {
+async function autenticar(req, res, next) {
     // Captura o cabeçalho de autorização da requisição
     const cabecalhoAuth = req.headers.authorization;
 
@@ -21,22 +22,31 @@ function autenticar(req, res, next) {
     // Extrai o token removendo o prefixo "Bearer "
     const token = cabecalhoAuth.split(' ')[1];
 
+    let decodificado;
     try {
-        // Tenta verificar e decodificar o token usando a chave secreta
-        const decodificado = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Anexa os dados do usuário decodificados ao objeto request
-        // Estes dados ficam disponíveis em todas as rotas seguintes
-        req.usuario = decodificado;
-        
-        // Chama a próxima função/middleware da cadeia
-        next();
+        // Verifica assinatura e validade do token com a chave secreta
+        decodificado = jwt.verify(token, process.env.JWT_SECRET);
     } catch (erro) {
-        // Se o token expirou ou é inválido, retorna erro 401
+        // Token expirado ou inválido
         return res.status(401).json({ 
             mensagem: "Token inválido ou expirado. Faça login novamente." 
         });
     }
+
+    try {
+        // A conta ainda existe? (um token de conta excluída deixa de valer na hora)
+        const [linhas] = await db.query('SELECT id FROM administrador WHERE id = ?', [decodificado.id]);
+        if (linhas.length === 0) {
+            return res.status(401).json({ mensagem: "Conta não encontrada. Faça login novamente." });
+        }
+    } catch (erro) {
+        console.error("Erro ao validar a conta do token:", erro);
+        return res.status(500).json({ mensagem: "Erro ao validar a sessão." });
+    }
+
+    // Disponibiliza os dados do usuário para as rotas seguintes
+    req.usuario = decodificado;
+    next();
 }
 
 module.exports = autenticar;

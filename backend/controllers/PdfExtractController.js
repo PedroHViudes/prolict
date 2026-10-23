@@ -113,8 +113,10 @@ ${textoBruto.substring(0, 30000)} // Limitando o texto para evitar estourar o li
         } catch (erro) {
             console.error("Erro na extração do PDF:", erro);
             if (erro.status === 401 || (erro.message && erro.message.includes('UNAUTHENTICATED'))) {
-                return res.status(401).json({
-                    mensagem: "Chave de API do Gemini inválida ou não autorizada no arquivo .env (Erro 401).",
+                // 502 (e não 401): o erro é da API externa, não da sessão do usuário.
+                // Um 401 faria o front-end deslogar o usuário.
+                return res.status(502).json({
+                    mensagem: "Chave de API do Gemini inválida ou não autorizada no arquivo .env.",
                     detalhes: "Obtenha uma chave gratuita válida no Google AI Studio (https://aistudio.google.com/app/apikey) e cole no GEMINI_API_KEY no arquivo backend/.env."
                 });
             }

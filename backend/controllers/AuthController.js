@@ -212,7 +212,8 @@ const AuthController = {
             }
 
             return res.status(200).json({
-                mensagem: "Código de verificação de 6 dígitos enviado para o seu e-mail!",
+                // Mesma mensagem do caso "e-mail não cadastrado", para não revelar quais contas existem
+                mensagem: "Se este e-mail estiver cadastrado em nosso sistema, um código de 6 dígitos foi enviado para ele.",
                 email: email
             });
 

@@ -13,7 +13,7 @@ const Servico = {
      */
     buscarTodos: async (administradorId) => {
         const sql = `
-            SELECT s.*, i.descricao as item_descricao, i.quantidade_ganha, i.quantidade_executada,
+            SELECT s.*, i.descricao as item_descricao, i.quantidade_ganha, i.quantidade_executada, i.valor_unitario,
                    l.orgao_publico, l.numero_processo, l.data_vigencia
             FROM servico s
             LEFT JOIN item i ON s.item_id = i.id
@@ -34,7 +34,7 @@ const Servico = {
      */
     buscarPorId: async (id, administradorId) => {
         const sql = `
-            SELECT s.*, i.descricao as item_descricao, i.quantidade_ganha, i.quantidade_executada,
+            SELECT s.*, i.descricao as item_descricao, i.quantidade_ganha, i.quantidade_executada, i.valor_unitario,
                    l.orgao_publico, l.numero_processo, l.data_vigencia
             FROM servico s
             LEFT JOIN item i ON s.item_id = i.id

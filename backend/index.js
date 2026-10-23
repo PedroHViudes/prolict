@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
 
 // Garante o fuso do Brasil mesmo em servidores configurados em UTC (datas e prazos)
@@ -7,10 +8,20 @@ if (!process.env.TZ) process.env.TZ = 'America/Sao_Paulo';
 
 const app = express();
 
-// Middleware para permitir requisições de outras origens (CORS)
+// Cabeçalhos HTTP de segurança (helmet). A política de recursos fica "cross-origin"
+// porque o front-end (Vite) roda em outra porta.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// CORS: só aceita as origens do front-end configuradas em CORS_ORIGIN (separadas por vírgula).
+// O token vai no cabeçalho Authorization, então não é preciso enviar cookies (credentials).
+const origensPermitidas = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://127.0.0.1:5173')
+    .split(',').map(o => o.trim()).filter(Boolean);
 app.use(cors({
-    origin: true,
-    credentials: true,
+    origin: (origem, callback) => {
+        // requisições sem Origin (Postman, testes, o próprio servidor) são aceitas
+        if (!origem || origensPermitidas.includes(origem)) return callback(null, true);
+        return callback(null, false);
+    },
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
