@@ -52,7 +52,7 @@ Este documento confere, item por item, o que o Jules afirmou em `testes/RELATORI
 | Bateria | Resultado |
 |---|---|
 | Jest (`npm test`): regras de negócio + `seguranca.test.js` (6 testes novos) | **19/19** |
-| `testes/api.test.js` | **102 ok, 0 falhas, 1 aviso** (lote sem itens não aparece na escolha de item, comportamento esperado). Com `TESTAR_EMAIL=1`: 103 ok |
+| `testes/api.test.js` | **102 verificações: 101 ok, 0 falhas, 1 aviso** (lote sem itens não aparece na escolha de item, comportamento esperado). Com `TESTAR_EMAIL=1`: 103 verificações, 102 ok |
 | `testes/concorrencia.test.js` | 4 de 10 aceitas, executado 20 de 20 |
 | Playwright (Jules), com `RATE_LIMIT=off` | **8/8** |
 | Teste de telas próprio (44 verificações) | **44/44** |
