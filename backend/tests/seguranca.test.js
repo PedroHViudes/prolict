@@ -1,4 +1,4 @@
-// Testes das correções de segurança apontadas na auditoria (testes/RELATORIO_JULES.md)
+// Testes das correções de segurança apontadas na auditoria (VULN-01 a VULN-08)
 const request = require('supertest');
 const db = require('../db');
 const app = require('../index');

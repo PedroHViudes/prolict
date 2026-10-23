@@ -1,5 +1,5 @@
 {
-  "name": "font-end",
+  "name": "prolicit-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -31,9 +31,8 @@
     "globals": "^17.4.0",
     "vite": "^8.0.4"
   },
-  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
-  "main": "eslint.config.js",
+  "description": "Interface web do PROLICIT (React e Vite)",
   "keywords": [],
-  "author": "",
+  "author": "Pedro Henrique Viudes Bezerra da Silva",
   "license": "ISC"
 }

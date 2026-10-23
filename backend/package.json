@@ -1,13 +1,14 @@
 {
-  "name": "back-end",
+  "name": "prolicit-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "API REST do PROLICIT (Node.js, Express e MySQL)",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "jest --runInBand"
   },
   "keywords": [],
-  "author": "",
+  "author": "Pedro Henrique Viudes Bezerra da Silva",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

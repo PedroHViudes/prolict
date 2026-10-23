@@ -4,7 +4,7 @@
 -- Conexão: localhost, root, sem senha
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS prolicit;
+CREATE DATABASE IF NOT EXISTS prolicit CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE prolicit;
 
 -- Desabilita checagem de chaves estrangeiras para permitir recriação limpa
