@@ -1,0 +1,33 @@
+/* ============================================================
+   ESTILOS DO COMPONENTE PDF IA UPLOAD
+   ============================================================ */
+
+.pdf-ia-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+}
+
+.pdf-ia-spinner {
+  width: 4rem;
+  height: 4rem;
+}
+
+.pdf-ia-card-header {
+  border-color: var(--prolicit-azul) !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+.titulo-ia-azul {
+  color: var(--prolicit-azul) !important;
+}
+
+.btn-ia-upload {
+  background-color: var(--prolicit-azul) !important;
+  color: #ffffff !important;
+}

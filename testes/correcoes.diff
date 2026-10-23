@@ -1,0 +1,1618 @@
+diff -ruN a/backend/controllers/AuthController.js b/backend/controllers/AuthController.js
+--- a/backend/controllers/AuthController.js	2026-10-21 15:58:56.828781145 -0300
++++ b/backend/controllers/AuthController.js	2026-10-21 16:01:26.609021426 -0300
+@@ -5,6 +5,12 @@
+ const { enviarEmailCodigoRecuperacao } = require('../utils/emailService');
+ require('dotenv').config();
+ 
++// Tentativas erradas de código PIN por e-mail (proteção contra força bruta).
++// Após 5 erros o código é invalidado e o usuário precisa pedir outro.
++const MAX_TENTATIVAS_PIN = 5;
++const tentativasPIN = new Map();
++const normalizarEmail = (e) => (typeof e === 'string' ? e.trim() : e);
++
+ /**
+  * Controller de Autenticação.
+  * Gerencia as operações de login, cadastro, perfil e redefinição de senha.
+@@ -16,7 +22,8 @@
+      * Realiza o login do administrador.
+      */
+     async login(req, res) {
+-        const { email, senha } = req.body;
++        const { senha } = req.body;
++        const email = normalizarEmail(req.body.email);
+ 
+         if (!email || !senha) {
+             return res.status(400).json({ mensagem: "E-mail e senha são obrigatórios." });
+@@ -59,11 +66,18 @@
+      * Cadastra um novo administrador no sistema.
+      */
+     async cadastrar(req, res) {
+-        const { nome, email, senha } = req.body;
++        const { nome, senha } = req.body;
++        const email = normalizarEmail(req.body.email);
+ 
+         if (!nome || !email || !senha) {
+             return res.status(400).json({ mensagem: "Dados obrigatórios faltando." });
+         }
++        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
++            return res.status(400).json({ mensagem: "Informe um e-mail válido." });
++        }
++        if (String(senha).length < 6) {
++            return res.status(400).json({ mensagem: "A senha deve ter pelo menos 6 caracteres." });
++        }
+ 
+         try {
+             const usuarioExistente = await Usuario.buscarPorEmail(email);
+@@ -138,6 +152,9 @@
+         if (!senhaAtual || !novaSenha) {
+             return res.status(400).json({ mensagem: "Senha atual e nova senha são obrigatórias." });
+         }
++        if (String(novaSenha).length < 6) {
++            return res.status(400).json({ mensagem: "A nova senha deve ter pelo menos 6 caracteres." });
++        }
+ 
+         try {
+             const [linhas] = await require('../db').query('SELECT senha FROM administrador WHERE id = ?', [req.usuario.id]);
+@@ -145,7 +162,8 @@
+ 
+             const senhaValida = await bcrypt.compare(senhaAtual, usuarioCompleto.senha);
+             if (!senhaValida) {
+-                return res.status(401).json({ mensagem: "A senha atual está incorreta." });
++                // 400 (e não 401): o front trata 401 como sessão expirada e deslogaria o usuário
++                return res.status(400).json({ mensagem: "A senha atual está incorreta." });
+             }
+ 
+             const saltos = 10;
+@@ -163,7 +181,7 @@
+      * Solicita a recuperação de senha gerando um código PIN de 6 dígitos.
+      */
+     async solicitarRecuperacaoSenha(req, res) {
+-        const { email } = req.body;
++        const email = normalizarEmail(req.body.email);
+ 
+         if (!email) {
+             return res.status(400).json({ mensagem: "O e-mail é obrigatório." });
+@@ -179,11 +197,19 @@
+                 });
+             }
+ 
+-            const codigoPIN = Math.floor(100000 + Math.random() * 900000).toString();
+-            const expiracao = new Date(Date.now() + 15 * 60 * 1000);
++            const codigoPIN = crypto.randomInt(100000, 1000000).toString();
+ 
+-            await Usuario.salvarTokenReset(usuario.id, codigoPIN, expiracao);
+-            await enviarEmailCodigoRecuperacao(usuario.email, usuario.nome, codigoPIN);
++            await Usuario.salvarTokenReset(usuario.id, codigoPIN, 15);
++            tentativasPIN.delete(usuario.email.toLowerCase());
++            const envio = await enviarEmailCodigoRecuperacao(usuario.email, usuario.nome, codigoPIN);
++
++            // Antes o erro de envio era ignorado e a tela dizia "enviado" mesmo sem e-mail nenhum sair.
++            if (!envio.sucesso) {
++                await Usuario.limparTokenReset(usuario.id);
++                return res.status(503).json({
++                    mensagem: "Não foi possível enviar o e-mail com o código agora. Verifique a configuração de e-mail do servidor (SMTP) e tente novamente."
++                });
++            }
+ 
+             return res.status(200).json({
+                 mensagem: "Código de verificação de 6 dígitos enviado para o seu e-mail!",
+@@ -203,24 +229,36 @@
+      * Redefine a senha utilizando o código PIN de 6 dígitos e o e-mail do usuário.
+      */
+     async redefinirSenhaComToken(req, res) {
+-        const { email, codigoPIN, token, novaSenha } = req.body;
++        const { codigoPIN, token, novaSenha } = req.body;
++        const email = normalizarEmail(req.body.email);
+         const pinParaValidar = (codigoPIN || token || "").trim();
+ 
+-        if (!pinParaValidar || !novaSenha) {
+-            return res.status(400).json({ mensagem: "Código de verificação e nova senha são obrigatórios." });
++        if (!email || !pinParaValidar || !novaSenha) {
++            return res.status(400).json({ mensagem: "E-mail, código de verificação e nova senha são obrigatórios." });
++        }
++        if (String(novaSenha).length < 6) {
++            return res.status(400).json({ mensagem: "A nova senha deve ter pelo menos 6 caracteres." });
+         }
+ 
+         try {
+-            let usuario;
+-            if (email) {
+-                usuario = await Usuario.buscarPorEmailETokenReset(email, pinParaValidar);
+-            } else {
+-                usuario = await Usuario.buscarPorTokenReset(pinParaValidar);
+-            }
++            // O código só vale junto com o e-mail (um código de 6 dígitos sozinho seria fácil de adivinhar)
++            const usuario = await Usuario.buscarPorEmailETokenReset(email, pinParaValidar);
+ 
+             if (!usuario) {
++                if (email) {
++                    const chave = email.toLowerCase();
++                    const n = (tentativasPIN.get(chave) || 0) + 1;
++                    tentativasPIN.set(chave, n);
++                    if (n >= MAX_TENTATIVAS_PIN) {
++                        const dono = await Usuario.buscarPorEmail(email);
++                        if (dono) await Usuario.limparTokenReset(dono.id);
++                        tentativasPIN.delete(chave);
++                        return res.status(429).json({ mensagem: "Muitas tentativas com código errado. Por segurança o código foi cancelado; solicite um novo." });
++                    }
++                }
+                 return res.status(400).json({ mensagem: "Código de verificação incorreto ou expirado. Solicite um novo código." });
+             }
++            tentativasPIN.delete(usuario.email.toLowerCase());
+ 
+             const saltos = 10;
+             const novaSenhaCriptografada = await bcrypt.hash(novaSenha, saltos);
+diff -ruN a/backend/controllers/DocumentoController.js b/backend/controllers/DocumentoController.js
+--- a/backend/controllers/DocumentoController.js	2026-10-21 15:58:56.828803625 -0300
++++ b/backend/controllers/DocumentoController.js	2026-10-21 16:01:12.293146232 -0300
+@@ -84,6 +84,10 @@
+                 return res.status(404).json({ mensagem: "Documento não encontrado." });
+             }
+ 
++            if (!dados.nome) {
++                return res.status(400).json({ mensagem: "O nome do documento é obrigatório." });
++            }
++
+             await Documento.atualizar(id, dados);
+             res.status(200).json({ mensagem: "Documento atualizado com sucesso!" });
+         } catch (erro) {
+@@ -111,6 +115,9 @@
+ 
+     vencendoEm: async (req, res) => {
+         const { dias } = req.params;
++        if (!/^\d+$/.test(String(dias))) {
++            return res.status(400).json({ mensagem: "Informe a quantidade de dias como número inteiro." });
++        }
+         try {
+             const documentos = await Documento.buscarVencendoEm(parseInt(dias), req.usuario.id);
+             res.status(200).json(documentos);
+diff -ruN a/backend/controllers/ItemController.js b/backend/controllers/ItemController.js
+--- a/backend/controllers/ItemController.js	2026-10-21 15:58:56.828832174 -0300
++++ b/backend/controllers/ItemController.js	2026-10-21 16:01:02.125746931 -0300
+@@ -2,6 +2,19 @@
+ const Lote = require('../models/Lote');
+ 
+ /**
++ * Validação comum de criação e edição de item.
++ * A coluna quantidade_ganha é INT, então a quantidade precisa ser inteira.
++ */
++function validarItem(dados) {
++    if (!dados.descricao) return "A descrição do item é obrigatória.";
++    const quantidade = Number(dados.quantidade_ganha || 0);
++    const valor = Number(dados.valor_unitario || 0);
++    if (!Number.isInteger(quantidade) || quantidade < 0) return "A quantidade deve ser um número inteiro maior ou igual a zero.";
++    if (Number.isNaN(valor) || valor < 0) return "O valor unitário não pode ser negativo.";
++    return null;
++}
++
++/**
+  * Controller de Itens.
+  * Verifica pertence ao lote→licitação do usuário antes de cada operação.
+  */
+@@ -57,6 +70,11 @@
+                 return res.status(404).json({ mensagem: "Lote não encontrado." });
+             }
+ 
++            const erroItem = validarItem(dados);
++            if (erroItem) {
++                return res.status(400).json({ mensagem: erroItem });
++            }
++
+             const somaAtualItens = await Item.somarItensLote(loteId);
+             const valorNovoItem = (parseFloat(dados.quantidade_ganha) || 0) * (parseFloat(dados.valor_unitario) || 0);
+ 
+@@ -91,6 +109,16 @@
+                 return res.status(404).json({ mensagem: "Item não encontrado." });
+             }
+ 
++            const erroItem = validarItem(dados);
++            if (erroItem) {
++                return res.status(400).json({ mensagem: erroItem });
++            }
++
++            // Não deixa a quantidade ganha ficar menor que a já executada (o saldo ficaria negativo)
++            if (Number(dados.quantidade_ganha || 0) < Number(item.quantidade_executada)) {
++                return res.status(400).json({ mensagem: `A quantidade ganha não pode ser menor que a quantidade já executada (${item.quantidade_executada}).` });
++            }
++
+             const lote = await Lote.buscarPorId(item.lote_id);
+             const somaAtualItens = await Item.somarItensLote(item.lote_id, id);
+             const valorNovoItem = (parseFloat(dados.quantidade_ganha) || 0) * (parseFloat(dados.valor_unitario) || 0);
+diff -ruN a/backend/controllers/LicitacaoController.js b/backend/controllers/LicitacaoController.js
+--- a/backend/controllers/LicitacaoController.js	2026-10-21 15:58:56.828847332 -0300
++++ b/backend/controllers/LicitacaoController.js	2026-10-21 16:00:39.690460159 -0300
+@@ -2,6 +2,23 @@
+ const Item = require('../models/Item');
+ const Lote = require('../models/Lote');
+ 
++const STATUS_VALIDOS = ['Ativa', 'Finalizada'];
++const TIPOS_VALIDOS = ['Serviços', 'Equipamentos', 'Ambos'];
++
++/**
++ * Validações comuns de criação e edição de licitação.
++ * Retorna a mensagem de erro ou null quando está tudo certo.
++ */
++function validarLicitacao(dados) {
++    if (!dados.numero_processo || !dados.orgao_publico) return "O número do processo e órgão público são obrigatórios.";
++    if (dados.status && !STATUS_VALIDOS.includes(dados.status)) return "Status inválido. Use 'Ativa' ou 'Finalizada'.";
++    if (dados.tipo && !TIPOS_VALIDOS.includes(dados.tipo)) return "Tipo inválido. Use 'Serviços', 'Equipamentos' ou 'Ambos'.";
++    const vazio = dados.valor_estimado === undefined || dados.valor_estimado === null || dados.valor_estimado === '';
++    const valor = vazio ? 0 : parseFloat(dados.valor_estimado);
++    if (Number.isNaN(valor) || valor < 0) return "O valor estimado não pode ser negativo.";
++    return null;
++}
++
+ /**
+  * Controller de Licitações.
+  * Todas as operações utilizam o ID do usuário logado (req.usuario.id)
+@@ -59,8 +76,9 @@
+         try {
+             const dados = req.body;
+ 
+-            if (!dados.numero_processo || !dados.orgao_publico) {
+-                return res.status(400).json({ mensagem: "O número do processo e órgão público são obrigatórios." });
++            const erroValidacao = validarLicitacao(dados);
++            if (erroValidacao) {
++                return res.status(400).json({ mensagem: erroValidacao });
+             }
+ 
+             if (dados.valor_estimado) {
+@@ -91,18 +109,17 @@
+                 return res.status(404).json({ mensagem: "Licitação não encontrada." });
+             }
+ 
+-            if (!dados.numero_processo || !dados.orgao_publico) {
+-                return res.status(400).json({ mensagem: "O número do processo e órgão público são obrigatórios." });
++            const erroValidacao = validarLicitacao(dados);
++            if (erroValidacao) {
++                return res.status(400).json({ mensagem: erroValidacao });
+             }
+ 
+-            if (dados.valor_estimado) {
+-                dados.valor_estimado = parseFloat(dados.valor_estimado) || 0;
+-                
+-                // Validação de Limites: O novo valor estimado não pode ser menor que a soma dos lotes cadastrados
+-                const somaAtualLotes = await Lote.somarLotesLicitacao(id);
+-                if (dados.valor_estimado < somaAtualLotes) {
+-                    return res.status(400).json({ mensagem: `O novo valor estimado não pode ser menor que a soma dos lotes cadastrados (R$ ${somaAtualLotes.toFixed(2)}).` });
+-                }
++            // Validação de Limites (RN01): o novo valor estimado não pode ser menor que a soma dos lotes.
++            // Vale também quando o campo é apagado ou zerado (antes isso passava sem conferência).
++            dados.valor_estimado = parseFloat(dados.valor_estimado) || 0;
++            const somaAtualLotes = await Lote.somarLotesLicitacao(id);
++            if (dados.valor_estimado < somaAtualLotes) {
++                return res.status(400).json({ mensagem: `O novo valor estimado não pode ser menor que a soma dos lotes cadastrados (R$ ${somaAtualLotes.toFixed(2)}).` });
+             }
+ 
+             await Licitacao.atualizar(id, dados, req.usuario.id);
+diff -ruN a/backend/controllers/LoteController.js b/backend/controllers/LoteController.js
+--- a/backend/controllers/LoteController.js	2026-10-21 15:58:56.828864302 -0300
++++ b/backend/controllers/LoteController.js	2026-10-21 16:00:48.246459775 -0300
+@@ -47,10 +47,19 @@
+                 return res.status(404).json({ mensagem: "Licitação não encontrada." });
+             }
+ 
++            if (!dados.numero_lote) {
++                return res.status(400).json({ mensagem: "O número do lote é obrigatório." });
++            }
++
+             const licitacaoCompleta = await Licitacao.buscarPorId(licitacaoId, req.usuario.id);
+             const somaAtualLotes = await Lote.somarLotesLicitacao(licitacaoId);
+             const valorNovoLote = parseFloat(dados.valor_total_arrematado) || 0;
+ 
++            // Um lote negativo "abriria espaço" para outros lotes e burlaria a RN01
++            if (valorNovoLote < 0) {
++                return res.status(400).json({ mensagem: "O valor arrematado do lote não pode ser negativo." });
++            }
++
+             if (somaAtualLotes + valorNovoLote > licitacaoCompleta.valor_estimado) {
+                 return res.status(400).json({ mensagem: `O valor deste lote excede o limite estimado da licitação (Restante: R$ ${(licitacaoCompleta.valor_estimado - somaAtualLotes).toFixed(2)}).` });
+             }
+@@ -82,11 +91,19 @@
+                 return res.status(404).json({ mensagem: "Lote não encontrado." });
+             }
+ 
++            if (!dados.numero_lote) {
++                return res.status(400).json({ mensagem: "O número do lote é obrigatório." });
++            }
++
+             // Validação 1: Soma de Lotes <= Licitacao
+             const licitacaoCompleta = await Licitacao.buscarPorId(lote.licitacao_id, req.usuario.id);
+             const somaAtualLotes = await Lote.somarLotesLicitacao(lote.licitacao_id, id);
+             const valorNovoLote = parseFloat(dados.valor_total_arrematado) || 0;
+ 
++            if (valorNovoLote < 0) {
++                return res.status(400).json({ mensagem: "O valor arrematado do lote não pode ser negativo." });
++            }
++
+             if (somaAtualLotes + valorNovoLote > licitacaoCompleta.valor_estimado) {
+                 return res.status(400).json({ mensagem: `O valor deste lote excede o limite estimado da licitação.` });
+             }
+diff -ruN a/backend/controllers/ServicoController.js b/backend/controllers/ServicoController.js
+--- a/backend/controllers/ServicoController.js	2026-10-21 15:58:56.828897348 -0300
++++ b/backend/controllers/ServicoController.js	2026-10-21 16:01:12.287060206 -0300
+@@ -45,12 +45,30 @@
+                 return res.status(404).json({ mensagem: "Item não encontrado." });
+             }
+ 
++            // Licitação encerrada não recebe novas baixas
++            if (item.licitacao_status === 'Finalizada') {
++                return res.status(400).json({ mensagem: "Esta licitação está finalizada. Reabra a licitação para registrar novos serviços." });
++            }
++
++            const quantidade = Number(dados.quantidade || 0);
++            if (!Number.isInteger(quantidade) || quantidade < 0) {
++                return res.status(400).json({ mensagem: "A quantidade deve ser um número inteiro maior ou igual a zero." });
++            }
++            if (Number(dados.valor_fixo || 0) < 0) {
++                return res.status(400).json({ mensagem: "O valor do serviço não pode ser negativo." });
++            }
++            dados.quantidade = quantidade;
++
+             const resultado = await Servico.criar(dados);
+             res.status(201).json({
+                 mensagem: "Serviço registrado com sucesso!",
+                 id: resultado.insertId
+             });
+         } catch (erro) {
++            // Recusa da regra de saldo (RN03): devolve 400 com a mensagem que explica o saldo
++            if (erro.codigo === 'SALDO_INSUFICIENTE') {
++                return res.status(400).json({ mensagem: erro.message });
++            }
+             console.error("Erro ao registrar serviço:", erro);
+             res.status(500).json({ mensagem: "Erro ao registrar serviço no banco de dados." });
+         }
+diff -ruN a/backend/index.js b/backend/index.js
+--- a/backend/index.js	2026-10-21 15:58:56.828969695 -0300
++++ b/backend/index.js	2026-10-21 15:59:06.629668768 -0300
+@@ -2,6 +2,9 @@
+ const cors = require('cors');
+ require('dotenv').config();
+ 
++// Garante o fuso do Brasil mesmo em servidores configurados em UTC (datas e prazos)
++if (!process.env.TZ) process.env.TZ = 'America/Sao_Paulo';
++
+ const app = express();
+ 
+ // Middleware para permitir requisições de outras origens (CORS)
+diff -ruN a/backend/models/Item.js b/backend/models/Item.js
+--- a/backend/models/Item.js	2026-10-21 15:58:56.829068600 -0300
++++ b/backend/models/Item.js	2026-10-21 16:01:02.126035230 -0300
+@@ -62,7 +62,7 @@
+      */
+     buscarPorIdComDono: async (id, administradorId) => {
+         const sql = `
+-            SELECT i.* FROM item i
++            SELECT i.*, lic.status AS licitacao_status FROM item i
+             LEFT JOIN lote lo ON i.lote_id = lo.id
+             LEFT JOIN licitacao lic ON lo.licitacao_id = lic.id
+             WHERE i.id = ? AND lic.administrador_id = ?
+diff -ruN a/backend/models/Servico.js b/backend/models/Servico.js
+--- a/backend/models/Servico.js	2026-10-21 15:58:56.829112396 -0300
++++ b/backend/models/Servico.js	2026-10-21 16:03:48.464897221 -0300
+@@ -54,15 +54,21 @@
+     criar: async (dados) => {
+         const { item_id, administrador_id, nome_servico, valor_fixo, data_execucao, descricao_detalhada, quantidade } = dados;
+         
++        // RN03 de forma atômica: a baixa no saldo só acontece se ainda houver saldo suficiente.
++        // Antes, "conferir e depois atualizar" eram dois passos separados e duas gravações ao mesmo
++        // tempo (duplo clique, duas abas) passavam juntas e deixavam o saldo negativo.
+         if (quantidade && quantidade > 0) {
+-            const sqlItem = "SELECT quantidade_ganha, quantidade_executada FROM item WHERE id = ?";
+-            const [itens] = await db.query(sqlItem, [item_id]);
+-            if (itens.length > 0) {
+-                const item = itens[0];
+-                const saldo = item.quantidade_ganha - item.quantidade_executada;
+-                if (quantidade > saldo) {
+-                    throw new Error(`Quantidade solicitada (${quantidade}) excede o saldo disponível (${saldo}).`);
+-                }
++            const sqlBaixa = `
++                UPDATE item SET quantidade_executada = quantidade_executada + ?
++                WHERE id = ? AND (quantidade_ganha - quantidade_executada) >= ?
++            `;
++            const [baixa] = await db.query(sqlBaixa, [quantidade, item_id, quantidade]);
++            if (baixa.affectedRows === 0) {
++                const [itens] = await db.query("SELECT quantidade_ganha, quantidade_executada FROM item WHERE id = ?", [item_id]);
++                const saldo = itens.length ? itens[0].quantidade_ganha - itens[0].quantidade_executada : 0;
++                const erroSaldo = new Error(`Quantidade solicitada (${quantidade}) excede o saldo disponível (${saldo}).`);
++                erroSaldo.codigo = 'SALDO_INSUFICIENTE';
++                throw erroSaldo;
+             }
+         }
+ 
+@@ -71,11 +77,15 @@
+             VALUES (?, ?, ?, ?, ?, ?, ?)
+         `;
+         const valores = [item_id, administrador_id, nome_servico, valor_fixo || 0, quantidade || 0, data_execucao || new Date(), descricao_detalhada || null];
+-        const [resultado] = await db.query(sqlServico, valores);
+-
+-        if (quantidade && quantidade > 0) {
+-            const sqlUpdate = "UPDATE item SET quantidade_executada = quantidade_executada + ? WHERE id = ?";
+-            await db.query(sqlUpdate, [quantidade, item_id]);
++        let resultado;
++        try {
++            [resultado] = await db.query(sqlServico, valores);
++        } catch (erro) {
++            // Se o serviço não foi gravado, devolve a quantidade ao saldo do item
++            if (quantidade && quantidade > 0) {
++                await db.query("UPDATE item SET quantidade_executada = GREATEST(quantidade_executada - ?, 0) WHERE id = ?", [quantidade, item_id]);
++            }
++            throw erro;
+         }
+ 
+         return resultado;
+diff -ruN a/backend/models/Usuario.js b/backend/models/Usuario.js
+--- a/backend/models/Usuario.js	2026-10-21 15:58:56.829139328 -0300
++++ b/backend/models/Usuario.js	2026-10-21 15:59:06.630066163 -0300
+@@ -68,9 +68,11 @@
+      * @param {string} token - Token gerado para redefinição
+      * @param {Date} dataExpiracao - Data e hora limite de validade do token
+      */
+-    async salvarTokenReset(id, token, dataExpiracao) {
+-        const sql = "UPDATE administrador SET reset_token = ?, reset_token_expires = ? WHERE id = ?";
+-        return await db.query(sql, [token, dataExpiracao, id]);
++    async salvarTokenReset(id, token, minutosValidade = 15) {
++        // A validade é calculada pelo próprio banco (NOW()), o mesmo relógio usado na conferência,
++        // evitando que o código já nasça "expirado" quando o Node e o MySQL estão em fusos diferentes.
++        const sql = "UPDATE administrador SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE id = ?";
++        return await db.query(sql, [token, minutosValidade, id]);
+     },
+ 
+     /**
+diff -ruN a/backend/utils/emailService.js b/backend/utils/emailService.js
+--- a/backend/utils/emailService.js	2026-10-21 15:58:56.829326906 -0300
++++ b/backend/utils/emailService.js	2026-10-21 15:59:06.629888634 -0300
+@@ -1,83 +1,85 @@
+-const nodemailer = require('nodemailer');
+-
+-/**
+- * Utilitário para envio de e-mails pelo sistema PROLICIT.
+- * Se configurado no .env (SMTP_USER/SMTP_PASS), envia pelo SMTP configurado.
+- * Caso contrário, cria uma conta de testes automática (Ethereal Email) e exibe o link do e-mail no console.
+- */
+-async function criarTransporter() {
+-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+-        return nodemailer.createTransport({
+-            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+-            port: parseInt(process.env.SMTP_PORT || '587'),
+-            secure: process.env.SMTP_SECURE === 'true',
+-            auth: {
+-                user: process.env.SMTP_USER,
+-                pass: process.env.SMTP_PASS
+-            }
+-        });
+-    }
+-
+-    // Se não houver credenciais SMTP no .env, cria uma conta de testes gratuita no Ethereal
+-    const testAccount = await nodemailer.createTestAccount();
+-    return nodemailer.createTransport({
+-        host: 'smtp.ethereal.email',
+-        port: 587,
+-        secure: false,
+-        auth: {
+-            user: testAccount.user,
+-            pass: testAccount.pass
+-        }
+-    });
+-}
+-
+-/**
+- * Envia o e-mail contendo o código PIN de 6 dígitos para o usuário.
+- * @param {string} emailDestino - E-mail do administrador
+- * @param {string} nomeUsuario - Nome do administrador
+- * @param {string} codigoPIN - Código numérico de 6 dígitos
+- */
+-async function enviarEmailCodigoRecuperacao(emailDestino, nomeUsuario, codigoPIN) {
+-    try {
+-        const transporter = await criarTransporter();
+-
+-        const info = await transporter.sendMail({
+-            from: '"PROLICIT Suporte" <nao-responda@prolicit.com>',
+-            to: emailDestino,
+-            subject: 'Código de Recuperação de Senha - PROLICIT',
+-            html: `
+-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
+-                    <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px;">PROLICIT</h2>
+-                    <h3 style="color: #1e293b; text-align: center;">Recuperação de Senha</h3>
+-                    <p style="color: #334155;">Olá, <strong>${nomeUsuario}</strong>!</p>
+-                    <p style="color: #334155;">Recebemos uma solicitação para redefinir a senha da sua conta no PROLICIT.</p>
+-                    <p style="color: #334155;">Seu código de verificação é:</p>
+-                    
+-                    <div style="background-color: #f1f5f9; text-align: center; padding: 18px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2563eb; margin: 20px 0;">
+-                        ${codigoPIN}
+-                    </div>
+-                    
+-                    <p style="margin-top: 20px; font-size: 13px; color: #64748b; text-align: center;">
+-                        Este código é válido por <strong>15 minutos</strong>. Se você não solicitou a alteração de senha, por favor ignore este e-mail.
+-                    </p>
+-                </div>
+-            `
+-        });
+-
+-        console.log(`\n==================================================`);
+-        console.log(`[E-MAIL ENVIADO] Código PIN ${codigoPIN} enviado para ${emailDestino}`);
+-        const previewUrl = nodemailer.getTestMessageUrl(info);
+-        if (previewUrl) {
+-            console.log(`[TESTE ETHEREAL] Abra o e-mail no navegador através do link:\n${previewUrl}`);
+-        }
+-        console.log(`==================================================\n`);
+-
+-        return { sucesso: true, previewUrl };
+-
+-    } catch (erro) {
+-        console.error("Erro ao enviar e-mail com Nodemailer:", erro);
+-        return { sucesso: false, erro: erro.message };
+-    }
+-}
+-
+-module.exports = { enviarEmailCodigoRecuperacao };
++const nodemailer = require('nodemailer');
++
++/**
++ * Utilitário para envio de e-mails pelo sistema PROLICIT.
++ * Se configurado no .env (SMTP_USER/SMTP_PASS), envia pelo SMTP configurado.
++ * Caso contrário, cria uma conta de testes automática (Ethereal Email) e exibe o link do e-mail no console.
++ */
++async function criarTransporter() {
++    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
++        return nodemailer.createTransport({
++            host: process.env.SMTP_HOST || 'smtp.gmail.com',
++            port: parseInt(process.env.SMTP_PORT || '587'),
++            secure: process.env.SMTP_SECURE === 'true',
++            auth: {
++                user: process.env.SMTP_USER,
++                // A senha de app do Google aparece com espaços ("abcd efgh ..."); removemos por segurança
++                pass: (process.env.SMTP_HOST || 'smtp.gmail.com').includes('gmail') ? process.env.SMTP_PASS.replace(/\s/g, '') : process.env.SMTP_PASS
++            }
++        });
++    }
++
++    // Se não houver credenciais SMTP no .env, cria uma conta de testes gratuita no Ethereal
++    const testAccount = await nodemailer.createTestAccount();
++    return nodemailer.createTransport({
++        host: 'smtp.ethereal.email',
++        port: 587,
++        secure: false,
++        auth: {
++            user: testAccount.user,
++            pass: testAccount.pass
++        }
++    });
++}
++
++/**
++ * Envia o e-mail contendo o código PIN de 6 dígitos para o usuário.
++ * @param {string} emailDestino - E-mail do administrador
++ * @param {string} nomeUsuario - Nome do administrador
++ * @param {string} codigoPIN - Código numérico de 6 dígitos
++ */
++async function enviarEmailCodigoRecuperacao(emailDestino, nomeUsuario, codigoPIN) {
++    try {
++        const transporter = await criarTransporter();
++
++        const info = await transporter.sendMail({
++            // O Gmail só aceita enviar em nome da própria conta autenticada
++            from: process.env.SMTP_FROM || `"PROLICIT Suporte" <${process.env.SMTP_USER || 'nao-responda@prolicit.com'}>`,
++            to: emailDestino,
++            subject: 'Código de Recuperação de Senha - PROLICIT',
++            html: `
++                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
++                    <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px;">PROLICIT</h2>
++                    <h3 style="color: #1e293b; text-align: center;">Recuperação de Senha</h3>
++                    <p style="color: #334155;">Olá, <strong>${nomeUsuario}</strong>!</p>
++                    <p style="color: #334155;">Recebemos uma solicitação para redefinir a senha da sua conta no PROLICIT.</p>
++                    <p style="color: #334155;">Seu código de verificação é:</p>
++                    
++                    <div style="background-color: #f1f5f9; text-align: center; padding: 18px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2563eb; margin: 20px 0;">
++                        ${codigoPIN}
++                    </div>
++                    
++                    <p style="margin-top: 20px; font-size: 13px; color: #64748b; text-align: center;">
++                        Este código é válido por <strong>15 minutos</strong>. Se você não solicitou a alteração de senha, por favor ignore este e-mail.
++                    </p>
++                </div>
++            `
++        });
++
++        console.log(`\n==================================================`);
++        console.log(`[E-MAIL ENVIADO] Código PIN ${codigoPIN} enviado para ${emailDestino}`);
++        const previewUrl = nodemailer.getTestMessageUrl(info);
++        if (previewUrl) {
++            console.log(`[TESTE ETHEREAL] Abra o e-mail no navegador através do link:\n${previewUrl}`);
++        }
++        console.log(`==================================================\n`);
++
++        return { sucesso: true, previewUrl };
++
++    } catch (erro) {
++        console.error("Erro ao enviar e-mail com Nodemailer:", erro);
++        return { sucesso: false, erro: erro.message };
++    }
++}
++
++module.exports = { enviarEmailCodigoRecuperacao };
+diff -ruN a/frontend/src/App.jsx b/frontend/src/App.jsx
+--- a/frontend/src/App.jsx	2026-10-21 16:07:00.769580657 -0300
++++ b/frontend/src/App.jsx	2026-10-21 16:07:00.772659726 -0300
+@@ -106,6 +106,9 @@
+         <Route path="/relatorios/licitacoes" element={
+           <RotaProtegida><RelatorioLicitacao /></RotaProtegida>
+         } />
++
++        {/* Qualquer endereço desconhecido volta para o início (evita tela em branco) */}
++        <Route path="*" element={<Navigate to="/" replace />} />
+       </Routes>
+     </Router>
+   );
+diff -ruN a/frontend/src/pagina/Dashboard.jsx b/frontend/src/pagina/Dashboard.jsx
+--- a/frontend/src/pagina/Dashboard.jsx	2026-10-21 16:07:00.770184617 -0300
++++ b/frontend/src/pagina/Dashboard.jsx	2026-10-21 16:07:00.773161677 -0300
+@@ -5,7 +5,7 @@
+ import Header from '../components/layout/Header';
+ import Card from '../components/layout/Card';
+ import api from '../services/api';
+-import { calcularPrazoRestante } from '../utils/dateUtils';
++import { calcularPrazoRestante, formatarData } from '../utils/dateUtils';
+ 
+ 
+ /**
+@@ -241,7 +241,7 @@
+                           <>
+                             <br />
+                             <small className="text-muted">
+-                              {new Date(e.data_execucao).toLocaleDateString('pt-BR')}
++                              {formatarData(e.data_execucao)}
+                             </small>
+                           </>
+                         )}
+diff -ruN a/frontend/src/pagina/LicitacaoAdicionar.jsx b/frontend/src/pagina/LicitacaoAdicionar.jsx
+--- a/frontend/src/pagina/LicitacaoAdicionar.jsx	2026-10-21 16:07:00.770217287 -0300
++++ b/frontend/src/pagina/LicitacaoAdicionar.jsx	2026-10-21 16:07:00.773192778 -0300
+@@ -34,6 +34,8 @@
+ 
+   // Lista de lotes (cada lote tem sua lista de itens)
+   const [lotes, setLotes] = useState([]);
++  // Lotes e itens já gravados que o usuário removeu na tela (apagados no banco ao salvar)
++  const [removidos, setRemovidos] = useState({ lotes: [], itens: [] });
+   const [carregando, setCarregando] = useState(false);
+   const [salvando, setSalvando] = useState(false);
+   
+@@ -182,7 +184,13 @@
+    * Remove um lote da lista pelo seu índice.
+    */
+   function removerLote(indice) {
+-    if (window.confirm("Tem certeza que deseja excluir este lote e todos os seus itens?")) {
++    const lote = lotes[indice];
++    const executados = (lote.itens || []).reduce((s, it) => s + (Number(it.quantidade_executada) || 0), 0);
++    const aviso = executados > 0
++      ? `Este lote tem itens com ${executados} unidade(s) já executada(s). Ao salvar, os serviços registrados nesses itens também serão apagados. Deseja continuar?`
++      : "Tem certeza que deseja excluir este lote e todos os seus itens?";
++    if (window.confirm(aviso)) {
++      if (lote.id) setRemovidos(r => ({ ...r, lotes: [...r.lotes, lote.id] }));
+       setLotes(lotes.filter((_, i) => i !== indice));
+     }
+   }
+@@ -216,8 +224,14 @@
+    * Remove um item de um lote específico pelo índice do item.
+    */
+   function removerItem(loteIndice, itemIndice) {
++    const item = lotes[loteIndice].itens[itemIndice];
++    const executada = Number(item.quantidade_executada) || 0;
++    if (executada > 0 && !window.confirm(`Este item já tem ${executada} unidade(s) executada(s). Ao salvar, os serviços registrados nele também serão apagados. Deseja continuar?`)) {
++      return;
++    }
++    if (item.id) setRemovidos(r => ({ ...r, itens: [...r.itens, item.id] }));
+     const novosLotes = [...lotes];
+-    novosLotes[loteIndice].itens.splice(itemIndice, 1);
++    novosLotes[loteIndice] = { ...novosLotes[loteIndice], itens: novosLotes[loteIndice].itens.filter((_, i) => i !== itemIndice) };
+     setLotes(novosLotes);
+   }
+ 
+@@ -287,6 +301,15 @@
+       let licitacaoId = id;
+ 
+       if (ehEdicao) {
++        // Primeiro apaga o que foi removido na tela (libera o valor para os limites RN01/RN02)
++        for (const itemId of removidos.itens) {
++          await api.delete(`/itens/${itemId}`);
++        }
++        for (const loteId of removidos.lotes) {
++          await api.delete(`/lotes/${loteId}`);
++        }
++        setRemovidos({ lotes: [], itens: [] });
++
+         // Atualiza licitação existente
+         await api.put(`/licitacoes/${id}`, formData);
+       } else {
+diff -ruN a/frontend/src/pagina/Licitacoes.jsx b/frontend/src/pagina/Licitacoes.jsx
+--- a/frontend/src/pagina/Licitacoes.jsx	2026-10-21 16:07:00.770235576 -0300
++++ b/frontend/src/pagina/Licitacoes.jsx	2026-10-21 16:07:00.773208652 -0300
+@@ -8,6 +8,7 @@
+ import '../estilos/Licitacoes.css';
+ 
+ 
++import { formatarData, paraDataLocal } from '../utils/dateUtils';
+ /**
+  * Página Minhas Licitações.
+  * Exibe a lista completa de licitações com opção de adicionar, editar e excluir.
+@@ -66,7 +67,7 @@
+     }
+ 
+     const hoje = new Date();
+-    const vigencia = new Date(dataVigencia);
++    const vigencia = paraDataLocal(dataVigencia);
+     hoje.setHours(0, 0, 0, 0);
+     vigencia.setHours(0, 0, 0, 0);
+ 
+@@ -134,7 +135,7 @@
+                     <td>{lic.orgao_publico}</td>
+                     <td>{lic.numero_processo}</td>
+                     <td>R$ {parseFloat(lic.valor_estimado || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+-                    <td>{new Date(lic.data_abertura).toLocaleDateString('pt-BR')}</td>
++                    <td>{formatarData(lic.data_abertura)}</td>
+                     <td>{calcularPrazoRestante(lic.data_vigencia)}</td>
+                     <td>
+                       <span className={`badge rounded-pill px-3 py-2 ${lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'}`}>
+diff -ruN a/frontend/src/pagina/RelatorioLicitacao.jsx b/frontend/src/pagina/RelatorioLicitacao.jsx
+--- a/frontend/src/pagina/RelatorioLicitacao.jsx	2026-10-21 16:07:00.770295951 -0300
++++ b/frontend/src/pagina/RelatorioLicitacao.jsx	2026-10-21 16:07:00.773265787 -0300
+@@ -1,308 +1,301 @@
+-import React, { useState, useEffect } from 'react';
+-import { FaFileCsv } from 'react-icons/fa';
+-import Layout from '../components/layout/Layout';
+-import Header from '../components/layout/Header';
+-import Card from '../components/layout/Card';
+-import api from '../services/api';
+-import '../estilos/Dashboard.css';
+-import '../estilos/Relatorios.css';
+-import Toast from '../components/ui/Toast';
+-
+-
+-
+-/**
+- * Página de Relatórios.
+- * Exibe resumo geral de licitações com saldo e detalhes de serviços.
+- * Cards de resumo + tabela de licitações + tabela de serviços com filtros.
+- */
+-export default function RelatorioLicitacao() {
+-  const [licitacoes, setLicitacoes] = useState([]);
+-  const [entregas, setEntregas] = useState([]);
+-  const [carregando, setCarregando] = useState(true);
+-
+-  // Filtros de licitação
+-  const [filtroOrgao, setFiltroOrgao] = useState('');
+-  const [filtroStatus, setFiltroStatus] = useState('');
+-  const [filtroData, setFiltroData] = useState('');
+-  const [filtroLicitacao, setFiltroLicitacao] = useState('');
+-
+-  // Filtros de serviço
+-  const [filtroServicoCliente, setFiltroServicoCliente] = useState('');
+-  const [filtroServicoData, setFiltroServicoData] = useState('');
+-
+-
+-  //toast para exibir mensagens
+-  const [toast, setToast] = useState({ visivel: false, mensagem: '' });
+-
+-  function exibirToast(mensagem) {
+-    setToast({ visivel: true, mensagem });
+-    setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
+-  }
+-
+-
+-  useEffect(() => {
+-    async function carregarDados() {
+-      try {
+-        const [respLicitacoes, respServicos, respEntregas] = await Promise.all([
+-          api.get('/licitacoes/relatorio/resumo'),
+-          api.get('/servicos'),
+-          api.get('/entregas')
+-        ]);
+-        setLicitacoes(respLicitacoes.data);
+-        setServicos(respServicos.data);
+-        setEntregas(respEntregas.data);
+-      } catch (erro) {
+-        console.error("Erro ao carregar relatórios:", erro);
+-      } finally {
+-        setCarregando(false);
+-      }
+-    }
+-    carregarDados();
+-  }, []);
+-
+-  // Filtros de licitação
+-  const licitacoesFiltradas = licitacoes.filter(lic => {
+-    const orgaoMatch = !filtroOrgao ||
+-      lic.orgao_publico?.toLowerCase().includes(filtroOrgao.toLowerCase());
+-    const statusMatch = !filtroStatus || lic.status === filtroStatus;
+-    const dataMatch = !filtroData || lic.data_abertura?.split('T')[0] === filtroData;
+-    const licitacaoMatch = !filtroLicitacao || lic.numero_processo?.includes(filtroLicitacao);
+-    return orgaoMatch && statusMatch && dataMatch && licitacaoMatch;
+-  });
+-
+-  // Filtros de serviço
+-  const LicitacoesFiltrados = licitacoes.filter(serv => {
+-    const clienteMatch = !filtroServicoCliente ||
+-      serv.orgao_publico?.toLowerCase().includes(filtroServicoCliente.toLowerCase());
+-    const dataMatch = !filtroServicoData ||
+-      serv.data_execucao?.split('T')[0] === filtroServicoData;
+-    return clienteMatch && dataMatch;
+-  });
+-
+-  // Totais dos cards
+-  const totalEstimado = licitacoes.reduce((s, l) => s + parseFloat(l.valor_estimado || 0), 0);
+-  const totalExecutado = licitacoes.reduce((s, l) => s + parseFloat(l.valor_executado || 0), 0);
+-  const saldoTotal = licitacoes.reduce((s, l) => s + parseFloat(l.saldo || 0), 0);
+-
+-  // Busca entrega de um serviço
+-  function buscarEntrega(servicoId) {
+-    return entregas.find(e => e.servico_id === servicoId) || null;
+-  }
+-
+-  /**
+-   * Exporta licitações como CSV.
+-   */
+-  function exportarLicitacoesCSV() {
+-    if (licitacoesFiltradas.length === 0) {
+-      exibirToast("Nenhum dado para exportar.");
+-      return;
+-    }
+-    const cabecalho = "Licitação,Órgão,Data,Valor Estimado,Executado,Saldo,Status\n";
+-    const linhas = licitacoesFiltradas.map(lic =>
+-      `${lic.numero_processo},${lic.orgao_publico},${lic.data_abertura || '-'},${lic.valor_estimado || 0},${lic.valor_executado || 0},${lic.saldo || 0},${lic.status}`
+-    ).join('\n');
+-    const blob = new Blob([cabecalho + linhas], { type: 'text/csv;charset=utf-8;' });
+-    const link = document.createElement('a');
+-    link.href = URL.createObjectURL(blob);
+-    link.download = 'relatorio_licitacoes.csv';
+-    link.click();
+-  }
+-
+-  /**
+-   * Exporta serviços como CSV.
+-   */
+-  function exportarServicosCSV() {
+-    if (servicosFiltrados.length === 0) {
+-      exibirToast("Nenhum dado para exportar.");
+-      return;
+-    }
+-    const cabecalho = "Data,Serviço,Licitação,Órgão,Item,Valor,Quem Recebeu,Responsável\n";
+-    const linhas = servicosFiltrados.map(serv => {
+-      const ent = buscarEntrega(serv.id);
+-      return `${serv.data_execucao || '-'},${serv.nome_servico},${serv.numero_processo || '-'},${serv.orgao_publico || '-'},${serv.item_descricao || '-'},${serv.valor_fixo || 0},${ent?.quem_recebeu || '-'},${ent?.responsavel_entrega || '-'}`;
+-    }).join('\n');
+-    const blob = new Blob([cabecalho + linhas], { type: 'text/csv;charset=utf-8;' });
+-    const link = document.createElement('a');
+-    link.href = URL.createObjectURL(blob);
+-    link.download = 'relatorio_servicos.csv';
+-    link.click();
+-  }
+-
+-  function formatarMoeda(valor) {
+-    return `R$ ${parseFloat(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+-  }
+-
+-  return (
+-    <Layout>
+-      <Header
+-        title="Relatórios Licitação"
+-        subtitle="Visualize o resumo das licitações"
+-      />
+-
+-      {/* ============================================================ */}
+-      {/* SEÇÃO 1: Cards de Resumo */}
+-      {/* ============================================================ */}
+-      <div className="row mb-4">
+-        <div className="col-md-3">
+-          <Card className="h-100">
+-            <h6 className="text-muted mb-3 fw-bold">Total de Licitações</h6>
+-            <h2 className="fw-bold mb-0 cor-fundo-licitacao" >
+-              {licitacoes.length}
+-            </h2>
+-          </Card>
+-        </div>
+-        <div className="col-md-3">
+-          <Card className="h-100">
+-            <h6 className="text-muted mb-3 fw-bold">Valor Estimado Total</h6>
+-            <h2 className="fw-bold mb-0 cor-fundo-valor" >
+-              {formatarMoeda(totalEstimado)}
+-            </h2>
+-          </Card>
+-        </div>
+-        <div className="col-md-3">
+-          <Card className="h-100">
+-            <h6 className="text-muted mb-3 fw-bold">Valor Executado</h6>
+-            <h2 className="fw-bold mb-0 cor-fundo-executado" >
+-              {formatarMoeda(totalExecutado)}
+-            </h2>
+-          </Card>
+-        </div>
+-        <div className="col-md-3">
+-          <Card className="h-100">
+-            <h6 className="text-muted mb-3 fw-bold">Saldo Pendente</h6>
+-            <h2 className="fw-bold mb-0 cor-fundo-saldo" >
+-              {formatarMoeda(saldoTotal)}
+-            </h2>
+-          </Card>
+-        </div>
+-      </div>
+-
+-      {/* ============================================================ */}
+-      {/* SEÇÃO 2: Tabela de Licitações com Saldo */}
+-      {/* ============================================================ */}
+-      <Card className="mb-4">
+-        <div className="d-flex justify-content-between align-items-center mb-4">
+-          <h4 className="fw-bold m-0">Licitações com Saldo</h4>
+-          <button
+-            className="btn btn-sm text-white rounded-pill px-3 bg-prolicit-verde"
+-            onClick={exportarLicitacoesCSV}
+-          >
+-            <FaFileCsv className="me-1" /> Exportar CSV
+-          </button>
+-        </div>
+-
+-        {/* Filtros de licitação */}
+-        <div className="row mb-6 mt-2 g-2">
+-
+-          <div className="col-md-4">
+-            <input
+-              type="text"
+-              className="form-control form-control-sm"
+-              placeholder="Filtrar por licitação..."
+-              value={filtroLicitacao}
+-              onChange={(e) => setFiltroLicitacao(e.target.value)}
+-            />
+-          </div>
+-
+-          <div className="col-md-4">
+-            <input
+-              type="text"
+-              className="form-control form-control-sm"
+-              placeholder="Filtrar por órgão..."
+-              value={filtroOrgao}
+-              onChange={(e) => setFiltroOrgao(e.target.value)}
+-            />
+-          </div>
+-          <div className="col-md-2">
+-            <select
+-              className="form-select form-select-sm"
+-              value={filtroStatus}
+-              onChange={(e) => setFiltroStatus(e.target.value)}
+-            >
+-              <option value="">Todos os status</option>
+-              <option value="Ativa">Ativa</option>
+-              <option value="Finalizada">Finalizada</option>
+-            </select>
+-          </div>
+-          <div className="col-md-2">
+-            <input
+-              type="date"
+-              className="form-control form-control-sm"
+-              value={filtroData}
+-              onChange={(e) => setFiltroData(e.target.value)}
+-            />
+-          </div>
+-        </div>
+-
+-        <div className="table-responsive mt-3">
+-          <table className="table table-hover align-middle text-center">
+-            <thead className="table-light">
+-              <tr>
+-                <th>Licitação</th>
+-                <th>Órgão</th>
+-                <th>Data</th>
+-                <th>Valor Estimado</th>
+-                <th>Executado</th>
+-                <th>Saldo</th>
+-                <th>Status</th>
+-              </tr>
+-            </thead>
+-            <tbody>
+-              {carregando ? (
+-                <tr>
+-                  <td colSpan="7" className="text-muted py-4">Carregando...</td>
+-                </tr>
+-              ) : licitacoesFiltradas.length === 0 ? (
+-                <tr>
+-                  <td colSpan="7" className="text-muted py-4">Nenhuma licitação encontrada.</td>
+-                </tr>
+-              ) : (
+-                licitacoesFiltradas.map((lic) => (
+-                  <tr key={lic.id}>
+-                    <td className="fw-bold">{lic.numero_processo}</td>
+-                    <td>{lic.orgao_publico}</td>
+-                    <td>{lic.data_abertura ? new Date(lic.data_abertura).toLocaleDateString('pt-BR') : '-'}</td>
+-                    <td>{formatarMoeda(lic.valor_estimado)}</td>
+-                    <td>{formatarMoeda(lic.valor_executado)}</td>
+-                    <td>
+-                      <strong className={parseFloat(lic.saldo || 0) > 0 ? 'text-prolicit-laranja' : 'text-prolicit-verde'}>
+-                        {formatarMoeda(lic.saldo)}
+-                      </strong>
+-                    </td>
+-                    <td>
+-                      <span className={`badge ${lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'
+-                        }`}>
+-                        {lic.status}
+-                      </span>
+-                    </td>
+-                  </tr>
+-                ))
+-              )}
+-            </tbody>
+-          </table>
+-        </div>
+-      </Card>
+-
+-      {/* ============================================================ */}
+-      {/* Total dos serviços filtrados */}
+-      {licitacoesFiltradas.length > 0 ? (
+-        <div className="text-end mt-3">
+-          <strong>
+-            Total filtrado: {formatarMoeda(licitacoesFiltradas.reduce((s, lic) => s + parseFloat(lic.valor_estimado || 0), 0))}
+-          </strong>
+-        </div>
+-      ) : (
+-        <div className="text-end mt-3 text-muted">
+-          <strong>0 licitações encontradas</strong>
+-        </div>
+-      )}
+-
+-      {/* Renderização do Toast Global */}
+-      {toast.visivel && (
+-        <Toast>
+-          {toast.mensagem}
+-        </Toast>
+-      )}
+-    </Layout>
+-  );
+-}
++import React, { useState, useEffect } from 'react';
++import { FaFileCsv } from 'react-icons/fa';
++import Layout from '../components/layout/Layout';
++import Header from '../components/layout/Header';
++import Card from '../components/layout/Card';
++import api from '../services/api';
++import '../estilos/Dashboard.css';
++import '../estilos/Relatorios.css';
++import Toast from '../components/ui/Toast';
++
++
++
++import { formatarData } from '../utils/dateUtils';
++import { baixarCSV, numeroCSV, dataCSV } from '../utils/csv';
++/**
++ * Página de Relatórios.
++ * Exibe resumo geral de licitações com saldo e detalhes de serviços.
++ * Cards de resumo + tabela de licitações + tabela de serviços com filtros.
++ */
++export default function RelatorioLicitacao() {
++  const [licitacoes, setLicitacoes] = useState([]);
++  const [entregas, setEntregas] = useState([]);
++  const [carregando, setCarregando] = useState(true);
++
++  // Filtros de licitação
++  const [filtroOrgao, setFiltroOrgao] = useState('');
++  const [filtroStatus, setFiltroStatus] = useState('');
++  const [filtroData, setFiltroData] = useState('');
++  const [filtroLicitacao, setFiltroLicitacao] = useState('');
++
++  // Filtros de serviço
++  const [filtroServicoCliente, setFiltroServicoCliente] = useState('');
++  const [filtroServicoData, setFiltroServicoData] = useState('');
++
++
++  //toast para exibir mensagens
++  const [toast, setToast] = useState({ visivel: false, mensagem: '' });
++
++  function exibirToast(mensagem) {
++    setToast({ visivel: true, mensagem });
++    setTimeout(() => setToast({ visivel: false, mensagem: '' }), 3500);
++  }
++
++
++  useEffect(() => {
++    async function carregarDados() {
++      try {
++        const [respLicitacoes, respServicos, respEntregas] = await Promise.all([
++          api.get('/licitacoes/relatorio/resumo'),
++          api.get('/servicos'),
++          api.get('/entregas')
++        ]);
++        setLicitacoes(respLicitacoes.data);
++        setEntregas(respEntregas.data);
++      } catch (erro) {
++        console.error("Erro ao carregar relatórios:", erro);
++      } finally {
++        setCarregando(false);
++      }
++    }
++    carregarDados();
++  }, []);
++
++  // Filtros de licitação
++  const licitacoesFiltradas = licitacoes.filter(lic => {
++    const orgaoMatch = !filtroOrgao ||
++      lic.orgao_publico?.toLowerCase().includes(filtroOrgao.toLowerCase());
++    const statusMatch = !filtroStatus || lic.status === filtroStatus;
++    const dataMatch = !filtroData || lic.data_abertura?.split('T')[0] === filtroData;
++    const licitacaoMatch = !filtroLicitacao || lic.numero_processo?.includes(filtroLicitacao);
++    return orgaoMatch && statusMatch && dataMatch && licitacaoMatch;
++  });
++
++  // Filtros de serviço
++  const LicitacoesFiltrados = licitacoes.filter(serv => {
++    const clienteMatch = !filtroServicoCliente ||
++      serv.orgao_publico?.toLowerCase().includes(filtroServicoCliente.toLowerCase());
++    const dataMatch = !filtroServicoData ||
++      serv.data_execucao?.split('T')[0] === filtroServicoData;
++    return clienteMatch && dataMatch;
++  });
++
++  // Totais dos cards
++  const totalEstimado = licitacoes.reduce((s, l) => s + parseFloat(l.valor_estimado || 0), 0);
++  const totalExecutado = licitacoes.reduce((s, l) => s + parseFloat(l.valor_executado || 0), 0);
++  const saldoTotal = licitacoes.reduce((s, l) => s + parseFloat(l.saldo || 0), 0);
++
++  // Busca entrega de um serviço
++  function buscarEntrega(servicoId) {
++    return entregas.find(e => e.servico_id === servicoId) || null;
++  }
++
++  /**
++   * Exporta licitações como CSV.
++   */
++  function exportarLicitacoesCSV() {
++    if (licitacoesFiltradas.length === 0) {
++      exibirToast("Nenhum dado para exportar.");
++      return;
++    }
++    baixarCSV('relatorio_licitacoes.csv',
++      ['Licitação', 'Órgão', 'Data', 'Valor Estimado', 'Executado', 'Saldo', 'Status'],
++      licitacoesFiltradas.map(lic => [lic.numero_processo, lic.orgao_publico, dataCSV(lic.data_abertura), numeroCSV(lic.valor_estimado), numeroCSV(lic.valor_executado), numeroCSV(lic.saldo), lic.status])
++    );
++  }
++
++  /**
++   * Exporta serviços como CSV.
++   */
++  function exportarServicosCSV() {
++    if (servicosFiltrados.length === 0) {
++      exibirToast("Nenhum dado para exportar.");
++      return;
++    }
++    baixarCSV('relatorio_servicos.csv',
++      ['Data', 'Serviço', 'Licitação', 'Órgão', 'Item', 'Valor', 'Quem Recebeu', 'Responsável'],
++      servicosFiltrados.map(serv => {
++        const ent = buscarEntrega(serv.id);
++        return [dataCSV(serv.data_execucao), serv.nome_servico, serv.numero_processo || '-', serv.orgao_publico || '-', serv.item_descricao || '-', numeroCSV(serv.valor_fixo), ent?.quem_recebeu || '-', ent?.responsavel_entrega || '-'];
++      })
++    );
++  }
++
++  function formatarMoeda(valor) {
++    return `R$ ${parseFloat(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
++  }
++
++  return (
++    <Layout>
++      <Header
++        title="Relatórios Licitação"
++        subtitle="Visualize o resumo das licitações"
++      />
++
++      {/* ============================================================ */}
++      {/* SEÇÃO 1: Cards de Resumo */}
++      {/* ============================================================ */}
++      <div className="row mb-4">
++        <div className="col-md-3">
++          <Card className="h-100">
++            <h6 className="text-muted mb-3 fw-bold">Total de Licitações</h6>
++            <h2 className="fw-bold mb-0 cor-fundo-licitacao" >
++              {licitacoes.length}
++            </h2>
++          </Card>
++        </div>
++        <div className="col-md-3">
++          <Card className="h-100">
++            <h6 className="text-muted mb-3 fw-bold">Valor Estimado Total</h6>
++            <h2 className="fw-bold mb-0 cor-fundo-valor" >
++              {formatarMoeda(totalEstimado)}
++            </h2>
++          </Card>
++        </div>
++        <div className="col-md-3">
++          <Card className="h-100">
++            <h6 className="text-muted mb-3 fw-bold">Valor Executado</h6>
++            <h2 className="fw-bold mb-0 cor-fundo-executado" >
++              {formatarMoeda(totalExecutado)}
++            </h2>
++          </Card>
++        </div>
++        <div className="col-md-3">
++          <Card className="h-100">
++            <h6 className="text-muted mb-3 fw-bold">Saldo Pendente</h6>
++            <h2 className="fw-bold mb-0 cor-fundo-saldo" >
++              {formatarMoeda(saldoTotal)}
++            </h2>
++          </Card>
++        </div>
++      </div>
++
++      {/* ============================================================ */}
++      {/* SEÇÃO 2: Tabela de Licitações com Saldo */}
++      {/* ============================================================ */}
++      <Card className="mb-4">
++        <div className="d-flex justify-content-between align-items-center mb-4">
++          <h4 className="fw-bold m-0">Licitações com Saldo</h4>
++          <button
++            className="btn btn-sm text-white rounded-pill px-3 bg-prolicit-verde"
++            onClick={exportarLicitacoesCSV}
++          >
++            <FaFileCsv className="me-1" /> Exportar CSV
++          </button>
++        </div>
++
++        {/* Filtros de licitação */}
++        <div className="row mb-6 mt-2 g-2">
++
++          <div className="col-md-4">
++            <input
++              type="text"
++              className="form-control form-control-sm"
++              placeholder="Filtrar por licitação..."
++              value={filtroLicitacao}
++              onChange={(e) => setFiltroLicitacao(e.target.value)}
++            />
++          </div>
++
++          <div className="col-md-4">
++            <input
++              type="text"
++              className="form-control form-control-sm"
++              placeholder="Filtrar por órgão..."
++              value={filtroOrgao}
++              onChange={(e) => setFiltroOrgao(e.target.value)}
++            />
++          </div>
++          <div className="col-md-2">
++            <select
++              className="form-select form-select-sm"
++              value={filtroStatus}
++              onChange={(e) => setFiltroStatus(e.target.value)}
++            >
++              <option value="">Todos os status</option>
++              <option value="Ativa">Ativa</option>
++              <option value="Finalizada">Finalizada</option>
++            </select>
++          </div>
++          <div className="col-md-2">
++            <input
++              type="date"
++              className="form-control form-control-sm"
++              value={filtroData}
++              onChange={(e) => setFiltroData(e.target.value)}
++            />
++          </div>
++        </div>
++
++        <div className="table-responsive mt-3">
++          <table className="table table-hover align-middle text-center">
++            <thead className="table-light">
++              <tr>
++                <th>Licitação</th>
++                <th>Órgão</th>
++                <th>Data</th>
++                <th>Valor Estimado</th>
++                <th>Executado</th>
++                <th>Saldo</th>
++                <th>Status</th>
++              </tr>
++            </thead>
++            <tbody>
++              {carregando ? (
++                <tr>
++                  <td colSpan="7" className="text-muted py-4">Carregando...</td>
++                </tr>
++              ) : licitacoesFiltradas.length === 0 ? (
++                <tr>
++                  <td colSpan="7" className="text-muted py-4">Nenhuma licitação encontrada.</td>
++                </tr>
++              ) : (
++                licitacoesFiltradas.map((lic) => (
++                  <tr key={lic.id}>
++                    <td className="fw-bold">{lic.numero_processo}</td>
++                    <td>{lic.orgao_publico}</td>
++                    <td>{formatarData(lic.data_abertura)}</td>
++                    <td>{formatarMoeda(lic.valor_estimado)}</td>
++                    <td>{formatarMoeda(lic.valor_executado)}</td>
++                    <td>
++                      <strong className={parseFloat(lic.saldo || 0) > 0 ? 'text-prolicit-laranja' : 'text-prolicit-verde'}>
++                        {formatarMoeda(lic.saldo)}
++                      </strong>
++                    </td>
++                    <td>
++                      <span className={`badge ${lic.status === 'Ativa' ? 'bg-success' : 'bg-secondary'
++                        }`}>
++                        {lic.status}
++                      </span>
++                    </td>
++                  </tr>
++                ))
++              )}
++            </tbody>
++          </table>
++        </div>
++      </Card>
++
++      {/* ============================================================ */}
++      {/* Total dos serviços filtrados */}
++      {licitacoesFiltradas.length > 0 ? (
++        <div className="text-end mt-3">
++          <strong>
++            Total filtrado: {formatarMoeda(licitacoesFiltradas.reduce((s, lic) => s + parseFloat(lic.valor_estimado || 0), 0))}
++          </strong>
++        </div>
++      ) : (
++        <div className="text-end mt-3 text-muted">
++          <strong>0 licitações encontradas</strong>
++        </div>
++      )}
++
++      {/* Renderização do Toast Global */}
++      {toast.visivel && (
++        <Toast>
++          {toast.mensagem}
++        </Toast>
++      )}
++    </Layout>
++  );
++}
+diff -ruN a/frontend/src/pagina/Relatorios.jsx b/frontend/src/pagina/Relatorios.jsx
+--- a/frontend/src/pagina/Relatorios.jsx	2026-10-21 16:07:00.770311572 -0300
++++ b/frontend/src/pagina/Relatorios.jsx	2026-10-21 16:07:00.773279969 -0300
+@@ -10,6 +10,8 @@
+ 
+ 
+ 
++import { formatarData } from '../utils/dateUtils';
++import { baixarCSV, numeroCSV, dataCSV } from '../utils/csv';
+ /**
+  * Página de Relatórios.
+  * Exibe resumo geral de licitações com saldo e detalhes de serviços.
+@@ -98,15 +100,10 @@
+       exibirToast("Nenhum dado para exportar.");
+       return;
+     }
+-    const cabecalho = "Licitação,Órgão,Data,Valor Estimado,Executado,Saldo,Status\n";
+-    const linhas = licitacoesFiltradas.map(lic =>
+-      `${lic.numero_processo},${lic.orgao_publico},${lic.data_abertura || '-'},${lic.valor_estimado || 0},${lic.valor_executado || 0},${lic.saldo || 0},${lic.status}`
+-    ).join('\n');
+-    const blob = new Blob([cabecalho + linhas], { type: 'text/csv;charset=utf-8;' });
+-    const link = document.createElement('a');
+-    link.href = URL.createObjectURL(blob);
+-    link.download = 'relatorio_licitacoes.csv';
+-    link.click();
++    baixarCSV('relatorio_licitacoes.csv',
++      ['Licitação', 'Órgão', 'Data', 'Valor Estimado', 'Executado', 'Saldo', 'Status'],
++      licitacoesFiltradas.map(lic => [lic.numero_processo, lic.orgao_publico, dataCSV(lic.data_abertura), numeroCSV(lic.valor_estimado), numeroCSV(lic.valor_executado), numeroCSV(lic.saldo), lic.status])
++    );
+   }
+ 
+   /**
+@@ -117,16 +114,13 @@
+       exibirToast("Nenhum dado para exportar.");
+       return;
+     }
+-    const cabecalho = "Data,Serviço,Licitação,Órgão,Item,Valor,Quem Recebeu,Responsável\n";
+-    const linhas = servicosFiltrados.map(serv => {
+-      const ent = buscarEntrega(serv.id);
+-      return `${serv.data_execucao || '-'},${serv.nome_servico},${serv.numero_processo || '-'},${serv.orgao_publico || '-'},${serv.item_descricao || '-'},${serv.valor_fixo || 0},${ent?.quem_recebeu || '-'},${ent?.responsavel_entrega || '-'}`;
+-    }).join('\n');
+-    const blob = new Blob([cabecalho + linhas], { type: 'text/csv;charset=utf-8;' });
+-    const link = document.createElement('a');
+-    link.href = URL.createObjectURL(blob);
+-    link.download = 'relatorio_servicos.csv';
+-    link.click();
++    baixarCSV('relatorio_servicos.csv',
++      ['Data', 'Serviço', 'Licitação', 'Órgão', 'Item', 'Valor', 'Quem Recebeu', 'Responsável'],
++      servicosFiltrados.map(serv => {
++        const ent = buscarEntrega(serv.id);
++        return [dataCSV(serv.data_execucao), serv.nome_servico, serv.numero_processo || '-', serv.orgao_publico || '-', serv.item_descricao || '-', numeroCSV(serv.valor_fixo), ent?.quem_recebeu || '-', ent?.responsavel_entrega || '-'];
++      })
++    );
+   }
+ 
+   function formatarMoeda(valor) {
+@@ -250,7 +244,7 @@
+                   const entrega = buscarEntrega(serv.id);
+                   return (
+                     <tr key={serv.id}>
+-                      <td>{serv.data_execucao ? new Date(serv.data_execucao).toLocaleDateString('pt-BR') : '-'}</td>
++                      <td>{formatarData(serv.data_execucao)}</td>
+                       <td className="fw-bold">{serv.nome_servico}</td>
+                       <td>{serv.numero_processo || '-'}</td>
+                       <td>{serv.orgao_publico || '-'}</td>
+diff -ruN a/frontend/src/pagina/ServicoAdicionar.jsx b/frontend/src/pagina/ServicoAdicionar.jsx
+--- a/frontend/src/pagina/ServicoAdicionar.jsx	2026-10-21 16:07:00.770328438 -0300
++++ b/frontend/src/pagina/ServicoAdicionar.jsx	2026-10-21 16:07:00.773310121 -0300
+@@ -4,6 +4,7 @@
+ import Layout from '../components/layout/Layout';
+ import Header from '../components/layout/Header';
+ import Card from '../components/layout/Card';
++import Toast from '../components/ui/Toast';
+ import api from '../services/api';
+ import '../estilos/Servicos.css';
+ 
+@@ -113,7 +114,8 @@
+     async function carregarLicitacoes() {
+       try {
+         const resposta = await api.get('/licitacoes');
+-        setLicitacoes(resposta.data);
++        // Só licitações ativas recebem novas baixas (as finalizadas são bloqueadas também no servidor)
++        setLicitacoes(resposta.data.filter(l => l.status !== 'Finalizada'));
+       } catch (erro) {
+         console.error("Erro ao carregar licitações:", erro);
+       }
+@@ -326,8 +328,8 @@
+ 
+             {licitacoes.length === 0 ? (
+               <div className="text-center py-4">
+-                <p className="text-muted">Nenhuma licitação cadastrada.</p>
+-                <button className="btn btn-primary" onClick={() => navigate('/licitacoes/adicionar')}>
++                <p className="text-muted">Nenhuma licitação ativa cadastrada.</p>
++                <button className="btn btn-primary" onClick={() => navigate('/licitacoes/nova')}>
+                   Cadastrar Licitação
+                 </button>
+               </div>
+diff -ruN a/frontend/src/pagina/Servicos.jsx b/frontend/src/pagina/Servicos.jsx
+--- a/frontend/src/pagina/Servicos.jsx	2026-10-21 16:07:00.770348693 -0300
++++ b/frontend/src/pagina/Servicos.jsx	2026-10-21 16:07:00.773294668 -0300
+@@ -7,6 +7,7 @@
+ import api from '../services/api';
+ import '../estilos/Servicos.css';
+ 
++import { formatarData } from '../utils/dateUtils';
+ /**
+  * Página de Serviços Realizados.
+  * Lista todos os serviços prestados com informações de quem recebeu.
+@@ -119,7 +120,7 @@
+                   const entrega = buscarEntrega(serv.id);
+                   return (
+                     <tr key={serv.id}>
+-                      <td>{serv.data_execucao ? new Date(serv.data_execucao).toLocaleDateString('pt-BR') : '-'}</td>
++                      <td>{formatarData(serv.data_execucao)}</td>
+                       <td className="fw-bold">{serv.nome_servico}</td>
+                       <td>{serv.numero_processo || '-'}</td>
+                       <td>{serv.orgao_publico || '-'}</td>
+diff -ruN a/frontend/src/services/api.js b/frontend/src/services/api.js
+--- a/frontend/src/services/api.js	2026-10-21 16:07:00.770377670 -0300
++++ b/frontend/src/services/api.js	2026-10-21 16:07:00.773346274 -0300
+@@ -6,7 +6,8 @@
+  * em todas as requisições para as rotas protegidas.
+  */
+ const api = axios.create({
+-    baseURL: 'http://localhost:3001/api',
++    // Em produção, defina VITE_API_URL no .env do front (ex.: https://api.seudominio.com/api)
++    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+ });
+ 
+ /**
+diff -ruN a/frontend/src/utils/csv.js b/frontend/src/utils/csv.js
+--- a/frontend/src/utils/csv.js	1969-12-31 21:00:00.000000000 -0300
++++ b/frontend/src/utils/csv.js	2026-10-21 16:07:00.773374631 -0300
+@@ -0,0 +1,28 @@
++import { formatarData } from './dateUtils';
++
++/**
++ * Gera e baixa um arquivo CSV pronto para abrir no Excel em português:
++ * - separador ";" (o Excel brasileiro usa a vírgula como decimal);
++ * - BOM UTF-8 no início, para os acentos aparecerem certos;
++ * - campos entre aspas, para vírgulas, ponto e vírgula e quebras de linha no texto não "quebrarem" as colunas.
++ *
++ * @param {string} nomeArquivo - Nome do arquivo baixado
++ * @param {string[]} cabecalho - Títulos das colunas
++ * @param {Array<Array<any>>} linhas - Valores de cada linha
++ */
++export function baixarCSV(nomeArquivo, cabecalho, linhas) {
++  const celula = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
++  const conteudo = [cabecalho, ...linhas].map(l => l.map(celula).join(';')).join('\r\n');
++  const blob = new Blob(['﻿' + conteudo], { type: 'text/csv;charset=utf-8;' });
++  const link = document.createElement('a');
++  link.href = URL.createObjectURL(blob);
++  link.download = nomeArquivo;
++  link.click();
++  URL.revokeObjectURL(link.href);
++}
++
++/** Número no formato brasileiro (1500.5 → "1500,50"), para o Excel reconhecer como número. */
++export const numeroCSV = (v) => (parseFloat(v || 0)).toFixed(2).replace('.', ',');
++
++/** Data no formato dd/mm/aaaa (ou "-"). */
++export const dataCSV = (v) => formatarData(v);
+diff -ruN a/frontend/src/utils/dateUtils.js b/frontend/src/utils/dateUtils.js
+--- a/frontend/src/utils/dateUtils.js	2026-10-21 16:07:00.770406955 -0300
++++ b/frontend/src/utils/dateUtils.js	2026-10-21 16:07:00.773387605 -0300
+@@ -1,28 +1,55 @@
+-/**
+- * Utilitário para cálculo de vigência de licitações.
+- * Recebe a data de expiração e calcula a diferença em dias em relação à data atual.
+- * 
+- * @param {string|Date} dataVigencia - Data limite de vigência da licitação
+- * @returns {string} Texto formatado com o status do prazo (ex: "Vigência: 5 dias", "Vence hoje", "Prazo vencido")
+- */
+-export function calcularPrazoRestante(dataVigencia) {
+-  if (!dataVigencia) {
+-    return 'Sem vigência';
+-  }
+-
+-  const hoje = new Date();
+-  const vigencia = new Date(dataVigencia);
+-  hoje.setHours(0, 0, 0, 0);
+-  vigencia.setHours(0, 0, 0, 0);
+-
+-  const diasRestantes = Math.ceil((vigencia - hoje) / (1000 * 60 * 60 * 24));
+-
+-  if (diasRestantes < 0) {
+-    return 'Prazo vencido';
+-  }
+-  if (diasRestantes === 0) {
+-    return 'Vence hoje';
+-  }
+-
+-  return `Vigência: ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`;
+-}
++/**
++ * Converte a data vinda da API ("2026-03-10" ou "2026-03-10T03:00:00.000Z") em uma data local,
++ * usando só a parte AAAA-MM-DD. Assim o dia não "volta" um dia quando o servidor está em outro fuso.
++ *
++ * @param {string|Date} valor - Data vinda da API
++ * @returns {Date|null}
++ */
++export function paraDataLocal(valor) {
++  if (!valor) return null;
++  if (valor instanceof Date) return new Date(valor.getFullYear(), valor.getMonth(), valor.getDate());
++  const m = String(valor).match(/^(\d{4})-(\d{2})-(\d{2})/);
++  if (!m) return new Date(valor);
++  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
++}
++
++/**
++ * Formata a data da API no padrão brasileiro (dd/mm/aaaa).
++ *
++ * @param {string|Date} valor - Data vinda da API
++ * @param {string} vazio - Texto exibido quando não há data
++ * @returns {string}
++ */
++export function formatarData(valor, vazio = '-') {
++  const d = paraDataLocal(valor);
++  return d && !isNaN(d) ? d.toLocaleDateString('pt-BR') : vazio;
++}
++
++/**
++ * Utilitário para cálculo de vigência de licitações.
++ * Recebe a data de expiração e calcula a diferença em dias em relação à data atual.
++ * 
++ * @param {string|Date} dataVigencia - Data limite de vigência da licitação
++ * @returns {string} Texto formatado com o status do prazo (ex: "Vigência: 5 dias", "Vence hoje", "Prazo vencido")
++ */
++export function calcularPrazoRestante(dataVigencia) {
++  if (!dataVigencia) {
++    return 'Sem vigência';
++  }
++
++  const hoje = new Date();
++  const vigencia = paraDataLocal(dataVigencia);
++  hoje.setHours(0, 0, 0, 0);
++  vigencia.setHours(0, 0, 0, 0);
++
++  const diasRestantes = Math.ceil((vigencia - hoje) / (1000 * 60 * 60 * 24));
++
++  if (diasRestantes < 0) {
++    return 'Prazo vencido';
++  }
++  if (diasRestantes === 0) {
++    return 'Vence hoje';
++  }
++
++  return `Vigência: ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}`;
++}

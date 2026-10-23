@@ -1,0 +1,8 @@
+/* ============================================================
+   ESTILOS DA PÁGINA DE CONFIGURAÇÕES
+   ============================================================ */
+
+.btn-aplicar-configuracao {
+  background-color: var(--prolicit-verde) !important;
+  color: #ffffff !important;
+}

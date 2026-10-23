@@ -1,0 +1,11 @@
+/* ============================================================
+   ESTILOS DO COMPONENTE MODAL CONFIRMAÇÃO
+   ============================================================ */
+
+.modal-backdrop-custom {
+  z-index: 1050 !important;
+}
+
+.modal-box-custom {
+  z-index: 1055 !important;
+}

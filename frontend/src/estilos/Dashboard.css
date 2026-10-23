@@ -1,0 +1,17 @@
+.cor-fundo-licitacao{
+    color: var(--cor-texto-card_Licitacao);
+}
+.cor-fundo-valor{
+    color: var(--cor-texto-card_Valor);
+}
+
+.cor-fundo-executado{
+    color: var(--cor-texto-card_Executado);
+}
+.cor-fundo-saldo{
+    color: var(--cor-texto-card_Saldo);
+}
+
+.nav-link { color: var(--cor-texto-sidebar) !important; transition: all 0.2s ease; }
+.nav-link:hover { background-color: var(--cor-fundo-tabela-hover) !important; }
+.nav-link.active { background-color: var(--cor-fundo-tabela) !important; color: var(--prolicit-azul) !important; }
