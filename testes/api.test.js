@@ -52,7 +52,10 @@ const msg = (r) => (r.d && r.d.mensagem) || JSON.stringify(r.d).slice(0, 120);
   // Envia e-mail de verdade: só roda com TESTAR_EMAIL=1 (os e-mails de teste são fictícios e voltariam como não entregues)
   if (process.env.TESTAR_EMAIL) { r = await call('POST', '/esqueci-senha', { email: A.email }); check('Solicitar código → 200', r.s === 200, msg(r)); }
   r = await call('POST', '/esqueci-senha', { email: 'nao-existe@x.com' });
-  check('Resposta igual para e-mail cadastrado e não cadastrado (não revela contas)', false, 'mensagens diferentes: "' + msg(r).slice(0, 40) + '…" vs "Código de verificação… enviado"', 'aviso');
+  if (process.env.TESTAR_EMAIL) {
+    const rc = await call('POST', '/esqueci-senha', { email: A.email });
+    check('Resposta igual para e-mail cadastrado e não cadastrado (não revela contas)', rc.s === r.s && msg(rc) === msg(r), msg(rc) + ' | ' + msg(r));
+  } else check('E-mail não cadastrado recebe a mensagem genérica (200)', r.s === 200 && /Se este e-mail/.test(msg(r)), msg(r));
   r = await call('POST', '/redefinir-senha', { email: A.email, codigoPIN: '000000', novaSenha: 'x' }); check('PIN errado → 400', r.s === 400, msg(r));
   let tent = 0; for (let i = 0; i < 30; i++) { const x = await call('POST', '/redefinir-senha', { email: A.email, codigoPIN: String(100000 + i), novaSenha: 'Senha@123' }); if (x.s === 400) tent++; }
   check('Limite de tentativas de PIN (força bruta)', tent < 30, `${tent} tentativas seguidas aceitas sem bloqueio`, 'aviso');
@@ -144,6 +147,9 @@ const msg = (r) => (r.d && r.d.mensagem) || JSON.stringify(r.d).slice(0, 120);
   r = await call('GET', '/servicos', null, tA); check('Listar serviços', r.s === 200 && r.d.length >= 2, `${r.d.length}`);
   r = await call('GET', '/servicos', null, tB); check('Lista de serviços de B vazia', r.s === 200 && r.d.length === 0, `${r.d.length}`);
   r = await call('GET', '/servicos/valor-total', null, tA); check('Valor total de serviços', r.s === 200, r.d);
+  r = await call('POST', '/servicos', sv(1, { valor_fixo: 99999 }), tA); const sMan = r.d.id;
+  r = await call('GET', '/servicos/' + sMan, null, tA); check('Valor do serviço é calculado no servidor (1 × 50, ignora 99999)', Number(r.d.valor_fixo) === 50, r.d.valor_fixo);
+  await call('DELETE', '/servicos/' + sMan, null, tA);
 
   S('Entregas');
   r = await call('POST', `/servicos/${s1}/entregas`, { quem_recebeu: 'João', telefone: '43999999999', responsavel_entrega: 'Pedro', data_recebimento: '2026-03-12', observacoes: 'ok' }, tA); check('Registrar entrega → 201', r.s === 201, msg(r)); const e1 = r.d.id;

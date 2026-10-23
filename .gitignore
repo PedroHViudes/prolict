@@ -26,6 +26,7 @@ dist-ssr
 # Arquivos de ambiente
 .env
 .env.*
+!.env.example
 backend/.env
 frontend/.env
 
@@ -35,3 +36,9 @@ backend/node_modules/
 frontend/node_modules/
 
 
+
+# Saídas dos testes automatizados (Playwright)
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+backend/coverage/
