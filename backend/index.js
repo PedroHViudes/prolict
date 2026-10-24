@@ -8,6 +8,10 @@ if (!process.env.TZ) process.env.TZ = 'America/Sao_Paulo';
 
 const app = express();
 
+// Atrás de um proxy reverso (nginx no servidor), confia no endereço IP repassado por ele,
+// para que o limite de tentativas conte cada usuário separadamente. Ative com TRUST_PROXY=1 no .env.
+if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1);
+
 // Cabeçalhos HTTP de segurança (helmet). A política de recursos fica "cross-origin"
 // porque o front-end (Vite) roda em outra porta.
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));

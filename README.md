@@ -29,6 +29,7 @@ Projeto desenvolvido como Trabalho de Conclusão de Curso do curso de Tecnologia
 
 ```
 backend/    API REST (rotas → controllers → models) e banco.sql
+deploy/     scripts de instalação no servidor
 frontend/   interface em React
 testes/     testes de API e de concorrência (caixa-preta)
 ```
@@ -60,6 +61,18 @@ node testes/api.test.js              # com o backend rodando
 node testes/concorrencia.test.js
 cd frontend && npx playwright test   # com o backend e o front-end rodando
 ```
+
+## Publicação em servidor (Oracle Cloud)
+
+A pasta `deploy/` tem um script que instala o sistema em uma máquina virtual Ubuntu 24.04, com HTTPS em `https://<ip-com-tracos>.sslip.io`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/PedroHViudes/prolict/main/deploy/instalar-oracle.sh -o instalar.sh
+bash instalar.sh                 # instalação
+bash ~/prolict/deploy/atualizar.sh   # atualizações depois de um git push
+```
+
+Antes, libere as portas 80 e 443 na *Security List* da rede da VM.
 
 ## Autor
 
