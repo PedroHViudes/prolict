@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const path = require('path');
 
 /**
  * Utilitário para envio de e-mails pelo sistema PROLICIT.
@@ -49,7 +50,9 @@ async function enviarEmailCodigoRecuperacao(emailDestino, nomeUsuario, codigoPIN
             subject: 'Código de Recuperação de Senha - PROLICIT',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
-                    <h2 style="color: #2563eb; text-align: center; margin-bottom: 20px;">PROLICIT</h2>
+
+                    <img src="cid:prolicit-logo" alt="PROLICIT Logo" style="display: block; margin: 0 auto 20px; width: 200px; height: auto;">
+                    
                     <h3 style="color: #1e293b; text-align: center;">Recuperação de Senha</h3>
                     <p style="color: #334155;">Olá, <strong>${nomeUsuario}</strong>!</p>
                     <p style="color: #334155;">Recebemos uma solicitação para redefinir a senha da sua conta no PROLICIT.</p>
@@ -63,7 +66,13 @@ async function enviarEmailCodigoRecuperacao(emailDestino, nomeUsuario, codigoPIN
                         Este código é válido por <strong>15 minutos</strong>. Se você não solicitou a alteração de senha, por favor ignore este e-mail.
                     </p>
                 </div>
-            `
+            `,
+            // A logo vai anexada inline e é referenciada no HTML por "cid:prolicit-logo"
+            attachments: [{
+                filename: 'logo.png',
+                path: path.join(__dirname, '..', 'assets', 'logo.png'),
+                cid: 'prolicit-logo'
+            }]
         });
 
         console.log(`\n==================================================`);
